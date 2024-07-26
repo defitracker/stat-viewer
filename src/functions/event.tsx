@@ -1,4 +1,6 @@
+import { getExplorerUrl } from "../helper";
 import { useMyStore } from "../store";
+import { EventEntry } from "../types";
 
 export function event(csi: number, eeId: string) {
   const ie = useMyStore.getState().fileData!.eventEntries[eeId];
@@ -14,7 +16,7 @@ export function event(csi: number, eeId: string) {
             >
               <dt className="font-medium text-gray-900">{key}</dt>
               <dd className="text-gray-700 sm:col-span-2">
-                {defaultValueTransform(value)}
+                {transfromByKey(key, value, ie)}
               </dd>
             </div>
           );
@@ -22,6 +24,65 @@ export function event(csi: number, eeId: string) {
       </dl>
     </div>
   );
+}
+
+function transfromByKey(key: string, value: any, ie: EventEntry) {
+  if (key === "block") {
+    const baseUrl = getExplorerUrl(ie.network);
+    return (
+      <a
+        href={`${baseUrl}/block/${value}`}
+        target="_blank"
+        className="text-blue-500 cursor-pointer hover:underline"
+      >
+        {value}
+      </a>
+    );
+  }
+  if (key === "address") {
+    const baseUrl = getExplorerUrl(ie.network);
+    return (
+      <a
+        href={`${baseUrl}/address/${value}`}
+        target="_blank"
+        className="text-blue-500 cursor-pointer hover:underline"
+      >
+        {value}
+      </a>
+    );
+  }
+  if (key === "txHash") {
+    const baseUrl = getExplorerUrl(ie.network);
+    return (
+      <a
+        href={`${baseUrl}/tx/${value}`}
+        target="_blank"
+        className="text-blue-500 cursor-pointer hover:underline"
+      >
+        {value}
+      </a>
+    );
+  }
+  if (key === "iterations") {
+    console.log(value);
+    return (
+      <div className="flex gap-1 flex-col">
+        {(value as string[]).map((v) => {
+          return (
+            <span
+              className="text-blue-500 cursor-pointer hover:underline"
+              onClick={() => {
+                useMyStore.getState().pushToCallStack("iteration", [v]);
+              }}
+            >
+              {v}
+            </span>
+          );
+        })}
+      </div>
+    );
+  }
+  return defaultValueTransform(value);
 }
 
 function defaultValueTransform(value: any) {
