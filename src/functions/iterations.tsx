@@ -8,16 +8,11 @@ export function iterations(csi: number) {
 
   const columns: TableColumnData[] = [
     { name: "Time", sorter: (a: number, b: number) => a - b },
-    { name: "Token" },
-    { name: "Profit" },
+    { name: "Token", sorter: (a: string, b: string) => a.localeCompare(b) },
+    { name: "Profit", sorter: (a: BigNumber, b: BigNumber) => a.comparedTo(b) },
   ];
 
   const rows = Object.values(fileData.iterationEntries)
-    .sort((a, b) => {
-      const aee = fileData.eventEntries[a.parentId];
-      const bee = fileData.eventEntries[b.parentId];
-      return aee.timestamp - bee.timestamp;
-    })
     .map((ie) => ({
       cells: iterationEntryToTableRow(ie, fileData.eventEntries),
       onClick: () => {
@@ -31,6 +26,7 @@ export function iterations(csi: number) {
     <Table
       tableName="Iterations"
       tableInfo=""
+      defaultSortCell={0}
       csi={csi}
       columns={columns}
       rows={rows}
@@ -48,7 +44,10 @@ function iterationEntryToTableRow(
       element: <>{new Date(ee.timestamp).toUTCString()}</>,
       sortableValue: ee.timestamp,
     },
-    { element: <>{ie.tokenName}</> },
-    { element: <>{BigNumber(ie.bestTvResDebugData?.[3] ?? "0").toFixed(4)}</> },
+    { element: <>{ie.tokenName}</>, sortableValue: ie.tokenName },
+    {
+      element: <>{BigNumber(ie.bestTvResDebugData?.[3] ?? "0").toFixed(4)}</>,
+      sortableValue: BigNumber(ie.bestTvResDebugData?.[3] ?? "0"),
+    },
   ];
 }
