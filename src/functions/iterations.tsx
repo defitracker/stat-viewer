@@ -1,32 +1,54 @@
 import BigNumber from "bignumber.js";
 import { useMyStore } from "../store";
 import { EventEntries, IterationEntry } from "../types";
-import Table from "../components/Table";
+import Table, { TableCellData, TableColumnData } from "../components/Table";
 
-export function iterations() {
+export function iterations(csi: number) {
   const fileData = useMyStore.getState().fileData!;
 
-  const columnNames = ["Time", "Token", "Profit"];
+  const columns: TableColumnData[] = [
+    { name: "Time", sorter: (a: number, b: number) => a - b },
+    { name: "Token" },
+    { name: "Profit" },
+  ];
 
   const rows = Object.values(fileData.iterationEntries)
-    .slice(0, 85)
+    .sort((a, b) => {
+      const aee = fileData.eventEntries[a.parentId];
+      const bee = fileData.eventEntries[b.parentId];
+      return aee.timestamp - bee.timestamp;
+    })
     .map((ie) => ({
       cells: iterationEntryToTableRow(ie, fileData.eventEntries),
       onClick: () => {
         useMyStore
           .getState()
-          .pushToCallStack("iteration", [ie.iterationEntryId, "kek"]);
+          .pushToCallStack("iteration", [ie.iterationEntryId]);
       },
     }));
 
-  return <Table columnNames={columnNames} rows={rows} />;
+  return (
+    <Table
+      tableName="Iterations"
+      tableInfo=""
+      csi={csi}
+      columns={columns}
+      rows={rows}
+    />
+  );
 }
 
-function iterationEntryToTableRow(ie: IterationEntry, ees: EventEntries) {
+function iterationEntryToTableRow(
+  ie: IterationEntry,
+  ees: EventEntries
+): TableCellData[] {
   const ee = ees[ie.parentId];
   return [
-    <>{new Date(ee.timestamp).toString()}</>,
-    <>{ie.tokenName}</>,
-    <>{BigNumber(ie.bestTvResDebugData?.[3] ?? "0").toFixed(4)}</>,
+    {
+      element: <>{new Date(ee.timestamp).toUTCString()}</>,
+      sortableValue: ee.timestamp,
+    },
+    { element: <>{ie.tokenName}</> },
+    { element: <>{BigNumber(ie.bestTvResDebugData?.[3] ?? "0").toFixed(4)}</> },
   ];
 }

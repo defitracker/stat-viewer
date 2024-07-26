@@ -1,10 +1,13 @@
+import { useShallow } from "zustand/react/shallow";
 import { useMyStore } from "../store";
 
 export default function Header() {
-  const { fileData, fileName } = useMyStore((state) => ({
-    fileData: state.fileData,
-    fileName: state.fileName,
-  }));
+  const { fileData, fileName } = useMyStore(
+    useShallow((state) => ({
+      fileData: state.fileData,
+      fileName: state.fileName,
+    }))
+  );
 
   return (
     <header className="bg-gray-100">

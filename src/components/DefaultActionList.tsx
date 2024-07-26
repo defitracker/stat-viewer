@@ -1,21 +1,29 @@
+import { useShallow } from "zustand/react/shallow";
 import { useMyStore } from "../store";
 
 export default function DefaultActionList() {
-  const { pushToCallStack } = useMyStore((state) => ({
-    pushToCallStack: state.pushToCallStack,
-  }));
+  const { pushToCallStack } = useMyStore(
+    useShallow((state) => ({
+      pushToCallStack: state.pushToCallStack,
+    }))
+  );
 
   return (
-    <ul className="space-y-1">
-      <Button
-        t="All iterations"
-        c={() => pushToCallStack(`iterations`, [])}
-      />
-      <Button
-        t="Iterations sorted by profit"
-        c={() => pushToCallStack(`itersByProfit`, [])}
-      />
-    </ul>
+    <>
+      <p>What do you want to start with?</p>
+      <ul className="space-y-1">
+        <Button t="All events" c={() => pushToCallStack(`events`, [])} />
+        <Button
+          t="All iterations"
+          c={() => pushToCallStack(`iterations`, [])}
+        />
+        <div className="h-2"></div>
+        <Button
+          t="Iterations sorted by profit"
+          c={() => pushToCallStack(`itersByProfit`, [])}
+        />
+      </ul>
+    </>
   );
 }
 

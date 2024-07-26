@@ -5,13 +5,15 @@ import { useMyStore } from "./store";
 import CallStack from "./components/CallStack";
 import DefaultActionList from "./components/DefaultActionList";
 import Renderer from "./components/Renderer";
+import { useEffect } from "react";
+import { useShallow } from "zustand/react/shallow";
 
 function App() {
-  const { fileData, setFileData, setFileName } = useMyStore((state) => ({
-    fileData: state.fileData,
-    setFileData: state.setFileData,
-    setFileName: state.setFileName,
-  }));
+  const { fileData } = useMyStore(
+    useShallow((state) => ({
+      fileData: state.fileData,
+    }))
+  );
 
   return (
     <>

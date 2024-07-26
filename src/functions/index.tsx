@@ -1,9 +1,11 @@
 import { event } from "./event";
+import { events } from "./events";
 import { iteration } from "./iteration";
 import { iterations } from "./iterations";
 
 export const functions = {
-  iterations,
-  iteration,
   event,
+  events,
+  iteration,
+  iterations,
 };

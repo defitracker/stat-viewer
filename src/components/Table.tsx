@@ -1,14 +1,58 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useMyStore } from "../store";
+import { useShallow } from "zustand/react/shallow";
+
+export type TableCellData = {
+  element: JSX.Element;
+  sortableValue?: any;
+};
+
+export type TableColumnData = {
+  name: string;
+  sorter?: (a: any, b: any) => number;
+};
 
 export type TableData = {
-  columnNames: string[];
-  rows: { cells: JSX.Element[]; onClick?: () => void }[];
+  csi?: number;
+  tableName: string;
+  tableInfo?: string;
+  columns: TableColumnData[];
+  rows: {
+    cells: TableCellData[];
+    onClick?: () => void;
+  }[];
 };
 
 const PAGE_SIZE = 10;
 
 export default function Table(tableData: TableData) {
   const [page, setPage] = useState(1);
+
+  // Use callStackCache
+  const { setCallStackCache } = useMyStore(
+    useShallow((state) => ({
+      setCallStackCache: state.setCallStackCache,
+    }))
+  );
+  // Set initial cache & load cache
+  useEffect(() => {
+    if (tableData.csi !== undefined) {
+      const cacheData = useMyStore.getState().callStackCache[tableData.csi];
+      if (cacheData === undefined) {
+        setCallStackCache(tableData.csi, { page: 1 });
+      } else {
+        const { page } = cacheData;
+        setPage(page);
+      }
+    }
+  }, []);
+
+  const setPageCached = useCallback((page: number) => {
+    setPage(page);
+    if (tableData.csi !== undefined) {
+      setCallStackCache(tableData.csi, { page });
+    }
+  }, []);
 
   const numPages = Math.ceil(tableData.rows.length / PAGE_SIZE);
   const pagedData = tableData.rows.slice(
@@ -51,18 +95,15 @@ export default function Table(tableData: TableData) {
       pagesInPaginator = [1, "...", numPages - 2, numPages - 1, numPages];
   }
 
-  //   let pagesInPaginator = [page - 1, page, page + 1].filter(
-  //     (v) => v >= 1 && v <= numPages
-  //   );
-
   return (
     <section className="container px-4 mx-auto">
       <h2 className="text-lg font-medium text-gray-800 dark:text-white">
-        Customers
+        {tableData.tableName}{" "}
+        <span className="text-sm">({tableData.rows.length})</span>
       </h2>
 
       <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
-        These companies have purchased in the last 12 months.
+        {tableData.tableInfo ?? ""}
       </p>
 
       <div className="flex flex-col mt-6">
@@ -72,22 +113,24 @@ export default function Table(tableData: TableData) {
               <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                 <thead className="bg-gray-50 dark:bg-gray-800">
                   <tr>
-                    {tableData.columnNames.map((cn) => {
+                    {tableData.columns.map((c) => {
                       return (
                         <th
+                          key={c.name}
                           scope="col"
                           className="px-4 py-3.5 text-sm font-normal text-left rtl:text-right text-gray-500 dark:text-gray-400"
                         >
-                          {cn}
+                          {c.name}
                         </th>
                       );
                     })}
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200 dark:divide-gray-700 dark:bg-gray-900">
-                  {pagedData.map((row) => {
+                  {pagedData.map((row, idx) => {
                     return (
                       <tr
+                        key={idx}
                         className={`${
                           row.onClick ? "hover:bg-gray-100 cursor-pointer" : ""
                         }`}
@@ -95,10 +138,13 @@ export default function Table(tableData: TableData) {
                           row.onClick && row.onClick();
                         }}
                       >
-                        {row.cells.map((element) => {
+                        {row.cells.map((cellData, idx) => {
                           return (
-                            <td className="px-4 py-4 text-sm whitespace-nowrap">
-                              {element}
+                            <td
+                              key={idx}
+                              className="px-4 py-4 text-sm whitespace-nowrap"
+                            >
+                              {cellData.element}
                             </td>
                           );
                         })}
@@ -121,7 +167,7 @@ export default function Table(tableData: TableData) {
           } capitalize transition-colors duration-200 bg-white border rounded-md gap-x-2 dark:bg-gray-900 dark:text-gray-200 dark:border-gray-700`}
           onClick={() => {
             if (page > 1) {
-              setPage(page - 1);
+              setPageCached(page - 1);
             }
           }}
         >
@@ -129,13 +175,13 @@ export default function Table(tableData: TableData) {
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
-            stroke-width="1.5"
+            strokeWidth="1.5"
             stroke="currentColor"
             className="w-5 h-5 rtl:-scale-x-100"
           >
             <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
+              strokeLinecap="round"
+              strokeLinejoin="round"
               d="M6.75 15.75L3 12m0 0l3.75-3.75M3 12h18"
             />
           </svg>
@@ -144,9 +190,10 @@ export default function Table(tableData: TableData) {
         </span>
 
         <div className="items-center hidden md:flex gap-x-3">
-          {pagesInPaginator.map((p) => {
+          {pagesInPaginator.map((p, idx) => {
             return (
               <span
+                key={idx}
                 className={`px-2 py-1 text-sm rounded-md text-gray-500 dark:bg-gray-800 ${
                   p === page
                     ? "text-blue-500 bg-blue-100/60 cursor-pointer"
@@ -156,7 +203,7 @@ export default function Table(tableData: TableData) {
                 }`}
                 onClick={() => {
                   if (Number.isInteger(p)) {
-                    setPage(p as number);
+                    setPageCached(p as number);
                   }
                 }}
               >
@@ -174,7 +221,7 @@ export default function Table(tableData: TableData) {
           } capitalize transition-colors duration-200 bg-white border rounded-md gap-x-2 dark:bg-gray-900 dark:text-gray-200 dark:border-gray-700`}
           onClick={() => {
             if (page < numPages) {
-              setPage(page + 1);
+              setPageCached(page + 1);
             }
           }}
         >
@@ -184,13 +231,13 @@ export default function Table(tableData: TableData) {
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
-            stroke-width="1.5"
+            strokeWidth="1.5"
             stroke="currentColor"
             className="w-5 h-5 rtl:-scale-x-100"
           >
             <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
+              strokeLinecap="round"
+              strokeLinejoin="round"
               d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3"
             />
           </svg>
