@@ -64,7 +64,6 @@ function transfromByKey(key: string, value: any, ie: EventEntry) {
     );
   }
   if (key === "iterations") {
-    console.log(value);
     return (
       <div className="flex gap-1 flex-col">
         {(value as string[]).map((v) => {

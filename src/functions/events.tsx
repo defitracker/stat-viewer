@@ -5,8 +5,6 @@ import Table, { TableCellData, TableColumnData } from "../components/Table";
 export function events(csi: number) {
   const fileData = useMyStore.getState().fileData!;
 
-  const columnNames = ["Id", "Time", "Network"];
-
   const columns: TableColumnData[] = [
     { name: "Id" },
     { name: "Time", sorter: (a: number, b: number) => a - b },
@@ -32,7 +30,7 @@ export function events(csi: number) {
   );
 }
 
-function eventEntryToTableRow(ee: EventEntry): TableCellData[] {
+export function eventEntryToTableRow(ee: EventEntry): TableCellData[] {
   return [
     { element: <>...{ee.eventEntryId.slice(-4)}</> },
     {

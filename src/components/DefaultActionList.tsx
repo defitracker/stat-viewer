@@ -19,8 +19,8 @@ export default function DefaultActionList() {
         />
         <div className="h-2"></div>
         <Button
-          t="Iterations sorted by profit"
-          c={() => pushToCallStack(`itersByProfit`, [])}
+          t="Run expression on events"
+          c={() => pushToCallStack(`eventsExpression`, [])}
         />
       </ul>
     </>

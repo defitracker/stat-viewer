@@ -14,7 +14,7 @@ export type TableColumnData = {
 
 export type TableData = {
   csi?: number;
-  tableName: string;
+  tableName?: string;
   tableInfo?: string;
   defaultSortCell?: number;
   columns: TableColumnData[];
@@ -147,7 +147,9 @@ export default function Table(tableData: TableData) {
     <section className="container px-4 mx-auto">
       <h2 className="text-lg font-medium text-gray-800 dark:text-white">
         {tableData.tableName}{" "}
-        <span className="text-sm">({tableData.rows.length})</span>
+        {tableData.tableName && (
+          <span className="text-sm">({tableData.rows.length})</span>
+        )}
       </h2>
 
       <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
