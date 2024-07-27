@@ -3,6 +3,7 @@ import { events } from "./events";
 import { eventsExpression } from "./eventsExpression";
 import { iteration } from "./iteration";
 import { iterations } from "./iterations";
+import { iterationsExpression } from "./iterationsExpression";
 
 export const functions = {
   event,
@@ -10,4 +11,5 @@ export const functions = {
   eventsExpression,
   iteration,
   iterations,
+  iterationsExpression,
 };

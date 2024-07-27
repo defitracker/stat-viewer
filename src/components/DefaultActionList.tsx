@@ -22,6 +22,10 @@ export default function DefaultActionList() {
           t="Run expression on events"
           c={() => pushToCallStack(`eventsExpression`, [])}
         />
+        <Button
+          t="Run expression on iterations"
+          c={() => pushToCallStack(`iterationsExpression`, [])}
+        />
       </ul>
     </>
   );

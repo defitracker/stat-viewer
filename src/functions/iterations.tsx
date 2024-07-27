@@ -34,7 +34,7 @@ export function iterations(csi: number) {
   );
 }
 
-function iterationEntryToTableRow(
+export function iterationEntryToTableRow(
   ie: IterationEntry,
   ees: EventEntries
 ): TableCellData[] {

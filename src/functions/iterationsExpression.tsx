@@ -5,17 +5,28 @@ import { eventEntryToTableRow } from "./events";
 import { useDebounce } from "use-debounce";
 import { useShallow } from "zustand/react/shallow";
 import React from "react";
+import { iterationEntryToTableRow } from "./iterations";
+import BigNumber from "bignumber.js";
 
-export function eventsExpression(csi: number) {
-  return <EventsExpression csi={csi} />;
+export function iterationsExpression(csi: number) {
+  return <IterationsExpression csi={csi} />;
 }
 
-function EventsExpression({ csi }: { csi: number }) {
+function IterationsExpression({ csi }: { csi: number }) {
   const [input, setInput] = useState("");
   const [debouncedInput] = useDebounce(input, 500);
 
   const fileData = useMyStore.getState().fileData!;
   const events = Object.values(fileData.eventEntries);
+  const iterations = Object.values(fileData.iterationEntries);
+
+  const iterationsWithEvent = iterations.map((i) => {
+    const e = fileData.eventEntries[i.parentId];
+    return {
+      ...i,
+      e,
+    };
+  });
 
   // Use callStackCache
   const { setCallStackCache } = useMyStore(
@@ -51,8 +62,8 @@ function EventsExpression({ csi }: { csi: number }) {
 
   const { filtered, errorRes } = useMemo(() => {
     try {
-      const filter = new Function("e", `return ${input}`);
-      const filtered = events.filter((e) => filter(e));
+      const filter = new Function("i", `return ${input}`);
+      const filtered = iterationsWithEvent.filter((e) => filter(e));
       return { filtered, errorRes: null };
     } catch (e) {
       return { filtered: [], errorRes: e };
@@ -61,23 +72,28 @@ function EventsExpression({ csi }: { csi: number }) {
 
   const tableElement = useMemo(() => {
     const columns: TableColumnData[] = [
-      { name: "Id" },
       { name: "Time", sorter: (a: number, b: number) => a - b },
-      { name: "Network", sorter: (a: string, b: string) => a.localeCompare(b) },
+      { name: "Token", sorter: (a: string, b: string) => a.localeCompare(b) },
+      {
+        name: "Profit",
+        sorter: (a: BigNumber, b: BigNumber) => a.comparedTo(b),
+      },
     ];
 
-    const rows = filtered.map((ee) => ({
-      cells: eventEntryToTableRow(ee),
+    const rows = filtered.map((ie) => ({
+      cells: iterationEntryToTableRow(ie, fileData.eventEntries),
       onClick: () => {
-        useMyStore.getState().pushToCallStack("event", [ee.eventEntryId]);
+        useMyStore
+          .getState()
+          .pushToCallStack("iteration", [ie.iterationEntryId]);
       },
     }));
 
     return (
       <Table
-        tableName="Events"
+        tableName="Iterations"
         tableInfo=""
-        defaultSortCell={1}
+        defaultSortCell={0}
         csi={csi}
         columns={columns}
         rows={rows}
@@ -85,8 +101,17 @@ function EventsExpression({ csi }: { csi: number }) {
     );
   }, [filtered]);
 
-  const keysMap = useMemo(() => {
+  const eventKeysMap = useMemo(() => {
     return events.reduce(
+      (acc, cur) => ({
+        ...acc,
+        ...Object.fromEntries(Object.keys(cur).map((k) => [k, 0])),
+      }),
+      {}
+    );
+  }, []);
+  const iterationKeysMap = useMemo(() => {
+    return iterationsWithEvent.reduce(
       (acc, cur) => ({
         ...acc,
         ...Object.fromEntries(Object.keys(cur).map((k) => [k, 0])),
@@ -141,56 +166,76 @@ function EventsExpression({ csi }: { csi: number }) {
           <p className="pb-1 text-gray-700 text-sm">Or start with this:</p>
           <button
             className="mt-1 bg-white flex items-center text-gray-700 dark:text-gray-300 justify-center gap-x-3 text-sm rounded-lg hover:bg-gray-100 duration-300 transition-colors border py-2 px-4"
+            onClick={() => setDataCached(`i.tokenName == "XCADportal"`)}
+          >
+            <span>Show iterations for given token</span>
+          </button>
+          <button
+            className="mt-1 bg-white flex items-center text-gray-700 dark:text-gray-300 justify-center gap-x-3 text-sm rounded-lg hover:bg-gray-100 duration-300 transition-colors border py-2 px-4"
+            onClick={() => setDataCached(`i.estimatedBestTv > 0`)}
+          >
+            <span>
+              Show iterations with calculated best tracking value {">"} 0
+            </span>
+          </button>
+          <button
+            className="mt-1 bg-white flex items-center text-gray-700 dark:text-gray-300 justify-center gap-x-3 text-sm rounded-lg hover:bg-gray-100 duration-300 transition-colors border py-2 px-4"
+            onClick={() => setDataCached(`i.networkA != i.greenNetwork`)}
+          >
+            <span>
+              Show iterations where depeg was created on destination chain
+            </span>
+          </button>
+          <button
+            className="mt-1 bg-white flex items-center text-gray-700 dark:text-gray-300 justify-center gap-x-3 text-sm rounded-lg hover:bg-gray-100 duration-300 transition-colors border py-2 px-4"
+            onClick={() => setDataCached(`i.e.eventVolumeUsd >= 200`)}
+          >
+            <span>Show iterations with usd event volume of $200 or more</span>
+          </button>
+          <button
+            className="mt-1 bg-white flex items-center text-gray-700 dark:text-gray-300 justify-center gap-x-3 text-sm rounded-lg hover:bg-gray-100 duration-300 transition-colors border py-2 px-4"
             onClick={() =>
               setDataCached(
-                `e.txHash == "0x0f804bc808ba37fdaadf50ddf4588952ba4101feda161a60c9b564052638900a"`
+                `((i.timeForFirstGreenNetworkRes || 0) + (i.timeForOtherTVs || 0) + (i.timeForBestTvRes || 0)) > 1000`
               )
             }
           >
-            <span>Find event by tx hash</span>
-          </button>
-          <button
-            className="mt-1 bg-white flex items-center text-gray-700 dark:text-gray-300 justify-center gap-x-3 text-sm rounded-lg hover:bg-gray-100 duration-300 transition-colors border py-2 px-4"
-            onClick={() => setDataCached(`e.network == "Polygon"`)}
-          >
-            <span>Show events on Polygon network</span>
-          </button>
-          <button
-            className="mt-1 bg-white flex items-center text-gray-700 dark:text-gray-300 justify-center gap-x-3 text-sm rounded-lg hover:bg-gray-100 duration-300 transition-colors border py-2 px-4"
-            onClick={() =>
-              setDataCached(
-                `e.network == "Base" && e.block >= 17621707 && e.block <= 17621708`
-              )
-            }
-          >
-            <span>Show events happened between two blocks on Base</span>
-          </button>
-          <button
-            className="mt-1 bg-white flex items-center text-gray-700 dark:text-gray-300 justify-center gap-x-3 text-sm rounded-lg hover:bg-gray-100 duration-300 transition-colors border py-2 px-4"
-            onClick={() => setDataCached(`e.eventVolumeUsd >= 200`)}
-          >
-            <span>Show events with usd volume of $200 or more</span>
+            <span>Show iterations with total time of 1000ms or more</span>
           </button>
         </div>
       )}
 
-      <>
-        <p className="mt-2 text-sm text-gray-700">
-          The following keys are available:
-        </p>
-        <div className="">
-          {Object.keys(keysMap).map((k) => {
-            return (
-              <React.Fragment key={k}>
-                <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-md">
-                  e.{k}
-                </span>
-                <span> </span>
-              </React.Fragment>
-            );
-          })}
-        </div>
-      </>
+      {
+        <>
+          <p className="mt-2 text-sm text-gray-700">
+            The following keys are available:
+          </p>
+          <div className="">
+            {Object.keys(iterationKeysMap).map((k) => {
+              return (
+                <React.Fragment key={k}>
+                  <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-md">
+                    i.{k}
+                  </span>
+                  <span> </span>
+                </React.Fragment>
+              );
+            })}
+          </div>
+          <div className="">
+            {Object.keys(eventKeysMap).map((k) => {
+              return (
+                <React.Fragment key={k}>
+                  <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-md">
+                    i.e.{k}
+                  </span>
+                  <span> </span>
+                </React.Fragment>
+              );
+            })}
+          </div>
+        </>
+      }
     </>
   );
 }
