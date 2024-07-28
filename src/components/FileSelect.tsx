@@ -2,9 +2,8 @@ import { useShallow } from "zustand/react/shallow";
 import { useMyStore } from "../store";
 
 export default function FileSelect() {
-  const { fileData, setFileData, setFileName } = useMyStore(
+  const { setFileData, setFileName } = useMyStore(
     useShallow((state) => ({
-      fileData: state.fileData,
       setFileData: state.setFileData,
       setFileName: state.setFileName,
     }))
@@ -20,8 +19,6 @@ export default function FileSelect() {
     });
     reader.readAsText(file);
   };
-
-  if (fileData) return <></>;
 
   return (
     <div>
