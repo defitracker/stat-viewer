@@ -5,7 +5,7 @@ import { eventEntryToTableRow } from "./events";
 import { useDebounce } from "use-debounce";
 import { useShallow } from "zustand/react/shallow";
 import React from "react";
-import { iterationEntryToTableRow } from "./iterations";
+import { iterationEntryTableColumns, iterationEntryToTableRow } from "./iterations";
 import BigNumber from "bignumber.js";
 
 export function iterationsExpression(csi: number) {
@@ -71,14 +71,7 @@ function IterationsExpression({ csi }: { csi: number }) {
   }, [debouncedInput]);
 
   const tableElement = useMemo(() => {
-    const columns: TableColumnData[] = [
-      { name: "Time", sorter: (a: number, b: number) => a - b },
-      { name: "Token", sorter: (a: string, b: string) => a.localeCompare(b) },
-      {
-        name: "Profit",
-        sorter: (a: BigNumber, b: BigNumber) => a.comparedTo(b),
-      },
-    ];
+    const columns = iterationEntryTableColumns();
 
     const rows = filtered.map((ie) => ({
       cells: iterationEntryToTableRow(ie, fileData.eventEntries),

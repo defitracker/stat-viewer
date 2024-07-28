@@ -9,7 +9,7 @@ export default function DefaultActionList() {
   );
 
   return (
-    <>
+    <div className="w-full max-w-4xl mx-auto">
       <p>What do you want to start with?</p>
       <ul className="space-y-1">
         <Button t="All events" c={() => pushToCallStack(`events`, [])} />
@@ -27,7 +27,7 @@ export default function DefaultActionList() {
           c={() => pushToCallStack(`iterationsExpression`, [])}
         />
       </ul>
-    </>
+    </div>
   );
 }
 

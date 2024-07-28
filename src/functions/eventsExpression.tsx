@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useMyStore } from "../store";
 import Table, { TableColumnData } from "../components/Table";
-import { eventEntryToTableRow } from "./events";
+import { eventEntryTableColumns, eventEntryToTableRow } from "./events";
 import { useDebounce } from "use-debounce";
 import { useShallow } from "zustand/react/shallow";
 import React from "react";
@@ -60,11 +60,7 @@ function EventsExpression({ csi }: { csi: number }) {
   }, [debouncedInput]);
 
   const tableElement = useMemo(() => {
-    const columns: TableColumnData[] = [
-      { name: "Id" },
-      { name: "Time", sorter: (a: number, b: number) => a - b },
-      { name: "Network", sorter: (a: string, b: string) => a.localeCompare(b) },
-    ];
+    const columns = eventEntryTableColumns()
 
     const rows = filtered.map((ee) => ({
       cells: eventEntryToTableRow(ee),

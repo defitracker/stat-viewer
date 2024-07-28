@@ -13,7 +13,7 @@ export default function CallStack() {
   return (
     <div className="flex items-center py-4 overflow-x-auto whitespace-nowrap">
       <span
-        className="text-gray-600 dark:text-gray-200 cursor-pointer"
+        className="text-gray-600 dark:text-gray-200 cursor-pointer flex gap-2 items-center"
         onClick={() => {
           popFromCallStack(callStack.length);
         }}
@@ -26,6 +26,7 @@ export default function CallStack() {
         >
           <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
         </svg>
+        {callStack.length === 0 && <span>Home</span>}
       </span>
       {callStack.map((v, idx) => {
         return (

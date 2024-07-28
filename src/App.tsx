@@ -20,7 +20,7 @@ function App() {
     <>
       <section className="bg-white">
         <Header />
-        <div className="container px-6 py-2 flex flex-col gap-2 w-full max-w-4xl mx-auto">
+        <div className="container px-6 py-2 flex flex-col gap-2 mx-auto">
           {!fileData && (
             <>
               <FileSelect />
