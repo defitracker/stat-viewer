@@ -24,7 +24,7 @@ export default function FileSelect() {
     <div>
       <label
         htmlFor="dropzone-file"
-        className="flex flex-col items-center w-full max-w-lg p-8 mx-auto mt-2 text-center bg-white border-2 border-gray-300 border-dashed cursor-pointer dark:bg-gray-900 dark:border-gray-700 rounded-xl"
+        className="flex flex-col items-center w-full max-w-lg p-8 mx-auto mt-2 text-center bg-white border-2 border-gray-300 border-dashed cursor-pointer rounded-xl"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -32,7 +32,7 @@ export default function FileSelect() {
           viewBox="0 0 24 24"
           strokeWidth="1.5"
           stroke="currentColor"
-          className="w-8 h-8 text-gray-500 dark:text-gray-400"
+          className="w-8 h-8 text-gray-500"
         >
           <path
             strokeLinecap="round"
@@ -41,11 +41,11 @@ export default function FileSelect() {
           />
         </svg>
 
-        <h2 className="mt-1 font-medium tracking-wide text-gray-700 dark:text-gray-200">
+        <h2 className="mt-1 font-medium tracking-wide text-gray-700">
           🤤 GIMME YOUR DATA
         </h2>
 
-        <p className="mt-2 text-xs tracking-wide text-gray-500 dark:text-gray-400">
+        <p className="mt-2 text-xs tracking-wide text-gray-500">
           Upload or darg & drop your file JSON.{" "}
         </p>
 

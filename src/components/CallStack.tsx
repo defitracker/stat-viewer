@@ -13,7 +13,7 @@ export default function CallStack() {
   return (
     <div className="flex items-center py-4 overflow-x-auto whitespace-nowrap">
       <span
-        className="text-gray-600 dark:text-gray-200 cursor-pointer flex gap-2 items-center"
+        className="text-gray-600 cursor-pointer flex gap-2 items-center"
         onClick={() => {
           popFromCallStack(callStack.length);
         }}
@@ -52,7 +52,7 @@ export default function CallStack() {
 function Item({ t, c }: { t: string; c?: () => void }) {
   return (
     <>
-      <span className="mx-3 text-gray-500 dark:text-gray-300 rtl:-scale-x-100">
+      <span className="mx-3 text-gray-500">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           className="w-5 h-5"
@@ -68,7 +68,7 @@ function Item({ t, c }: { t: string; c?: () => void }) {
       </span>
 
       <span
-        className={`dark:text-blue-400 ${
+        className={`${
           c ? "text-blue-500 hover:underline cursor-pointer" : "text-gray-500"
         }`}
         onClick={() => {

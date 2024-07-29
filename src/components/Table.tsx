@@ -171,30 +171,30 @@ export default function Table(tableData: TableData) {
 
   return (
     <section className="container px-4 mx-auto">
-      <h2 className="text-lg font-medium text-gray-800 dark:text-white">
+      <h2 className="text-lg font-medium text-gray-800">
         {tableData.tableName}{" "}
         {tableData.tableName && (
           <span className="text-sm">({tableData.rows.length})</span>
         )}
       </h2>
 
-      <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
+      <p className="mt-1 text-sm text-gray-500">
         {tableData.tableInfo ?? ""}
       </p>
 
       <div className="flex flex-col mt-4">
         <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
           <div className="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
-            <div className="overflow-hidden border border-gray-200 dark:border-gray-700 md:rounded-lg">
-              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                <thead className="bg-gray-50 dark:bg-gray-800">
+            <div className="overflow-hidden border border-gray-200 md:rounded-lg">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
                   <tr>
                     {tableData.columns.map((c, idx) => {
                       return (
                         <th
                           key={c.name}
                           scope="col"
-                          className="px-4 py-3.5 text-sm font-normal text-left rtl:text-right text-gray-500 dark:text-gray-400"
+                          className="px-4 py-3.5 text-sm font-normal text-left rtl:text-right text-gray-500"
                         >
                           <button
                             className={`flex items-center gap-x-3 focus:outline-none ${
@@ -222,7 +222,7 @@ export default function Table(tableData: TableData) {
                     })}
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200 dark:divide-gray-700 dark:bg-gray-900">
+                <tbody className="bg-white divide-y divide-gray-200">
                   {pagedData.length === 0 && (
                     <tr>
                       <td
@@ -269,9 +269,9 @@ export default function Table(tableData: TableData) {
           <span
             className={`flex items-center px-5 py-2 text-sm ${
               page !== 1
-                ? "text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
+                ? "text-gray-700 hover:bg-gray-100 cursor-pointer"
                 : "text-gray-400"
-            } capitalize transition-colors duration-200 bg-white border rounded-md gap-x-2 dark:bg-gray-900 dark:text-gray-200 dark:border-gray-700`}
+            } capitalize transition-colors duration-200 bg-white border rounded-md gap-x-2`}
             onClick={() => {
               if (page > 1) {
                 setDataCached(page - 1, cellToSort, sortAB);
@@ -301,7 +301,7 @@ export default function Table(tableData: TableData) {
               return (
                 <span
                   key={idx}
-                  className={`px-2 py-1 text-sm rounded-md text-gray-500 dark:bg-gray-800 ${
+                  className={`px-2 py-1 text-sm rounded-md text-gray-500 ${
                     p === page
                       ? "text-blue-500 bg-blue-100/60 cursor-pointer"
                       : Number.isInteger(p)
@@ -323,9 +323,9 @@ export default function Table(tableData: TableData) {
           <span
             className={`flex items-center px-5 py-2 text-sm ${
               page !== numPages
-                ? "text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
+                ? "text-gray-700 hover:bg-gray-100 cursor-pointer"
                 : "text-gray-400"
-            } capitalize transition-colors duration-200 bg-white border rounded-md gap-x-2 dark:bg-gray-900 dark:text-gray-200 dark:border-gray-700`}
+            } capitalize transition-colors duration-200 bg-white border rounded-md gap-x-2`}
             onClick={() => {
               if (page < numPages) {
                 setDataCached(page + 1, cellToSort, sortAB);

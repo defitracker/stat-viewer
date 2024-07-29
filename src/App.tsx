@@ -3,9 +3,7 @@ import Header from "./components/Header";
 import FileSelect from "./components/FileSelect";
 import { useMyStore } from "./store";
 import CallStack from "./components/CallStack";
-import DefaultActionList from "./components/DefaultActionList";
 import Renderer from "./components/Renderer";
-import { useEffect } from "react";
 import { useShallow } from "zustand/react/shallow";
 import S3FileSelect from "./components/S3FileSelect";
 

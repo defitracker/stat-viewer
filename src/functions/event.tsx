@@ -63,6 +63,30 @@ function transfromByKey(key: string, value: any, ie: EventEntry) {
       </a>
     );
   }
+  if (key === "token0") {
+    const baseUrl = getExplorerUrl(ie.network);
+    return (
+      <a
+        href={`${baseUrl}/token/${value}`}
+        target="_blank"
+        className="text-blue-500 cursor-pointer hover:underline"
+      >
+        {value}
+      </a>
+    );
+  }
+  if (key === "token1") {
+    const baseUrl = getExplorerUrl(ie.network);
+    return (
+      <a
+        href={`${baseUrl}/token/${value}`}
+        target="_blank"
+        className="text-blue-500 cursor-pointer hover:underline"
+      >
+        {value}
+      </a>
+    );
+  }
   if (key === "iterations") {
     return (
       <div className="flex gap-1 flex-col">
