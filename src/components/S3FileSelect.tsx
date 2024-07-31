@@ -33,6 +33,7 @@ import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import clsx from "clsx";
+import { useMyStore } from "@/helpers/store";
 
 const formSchema = z.object({
   region: z.string().min(1, { message: "region is required" }),
@@ -45,10 +46,21 @@ const formSchema = z.object({
     .length(40, { message: "SecretAccessKey must be 40 characters." }),
 });
 
-export default function S3FileSelect() {
-  const [loading, setLoading] = useState(false);
-  const [files, setFiles] = useState<null | S3.ObjectList>(null);
-
+function S3FileSelectWrapped({
+  loading,
+  setLoading,
+  files,
+  setFiles,
+  applyPermaStoreValues,
+  permaStoreInputs,
+}: {
+  loading: boolean;
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  files: null | S3.ObjectList;
+  setFiles: React.Dispatch<React.SetStateAction<null | S3.ObjectList>>;
+  applyPermaStoreValues: boolean;
+  permaStoreInputs: any;
+}) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -58,6 +70,10 @@ export default function S3FileSelect() {
       secretAccessKey: "",
     },
   });
+
+  if (applyPermaStoreValues && permaStoreInputs) {
+    onSubmit(permaStoreInputs);
+  }
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const { region, bucketName, accessKeyId, secretAccessKey } = values;
@@ -76,6 +92,9 @@ export default function S3FileSelect() {
       const s3 = maybeS3;
       const files = await s3.listObjects();
       setFiles(files);
+      useMyStore.getState().addToPermaStore("s3FileSelect", {
+        inputValues: values,
+      });
     } else {
       const e = maybeS3;
       toast(e.message);
@@ -188,7 +207,6 @@ export default function S3FileSelect() {
       {
         field: "timeStarted",
         flex: 1,
-        sort: "desc",
         valueGetter: (v) => new Date(v.data?.timeStarted ?? 0).toUTCString(),
         comparator: (valueA, valueB, nodeA, nodeB, isDescending) => {
           const a = nodeA.data?.timeStarted ?? 0;
@@ -218,8 +236,6 @@ export default function S3FileSelect() {
       },
     ];
 
-    console.log(rowData);
-
     // const gridRef = useRef<AgGridReact | null>(null);
 
     return (
@@ -227,11 +243,11 @@ export default function S3FileSelect() {
         <div className="ag-theme-quartz h-[400px]">
           <AgGridReact
             // ref={gridRef}
-            // initialState={{
-            //   sort: {
-            //     sortModel: [{ colId: "timeStarted", sort: "desc" }],
-            //   },
-            // }}
+            initialState={{
+              sort: {
+                sortModel: [{ colId: "timeStarted", sort: "desc" }],
+              },
+            }}
             rowData={rowData}
             columnDefs={colDefs}
             // defaultColDef={{ flex: 1 }}
@@ -267,5 +283,30 @@ export default function S3FileSelect() {
         {renderFiles()}
       </Card>
     </div>
+  );
+}
+
+export default function S3FileSelect() {
+  const [loading, setLoading] = useState(false);
+  const [files, setFiles] = useState<null | S3.ObjectList>(null);
+
+  const permaStoreData = useMyStore.getState().permaStore["s3FileSelect"];
+  console.log("permaStoreData", permaStoreData);
+
+  const applyPermaStoreValues =
+    permaStoreData &&
+    permaStoreData.inputValues &&
+    loading === false &&
+    files === null;
+
+  return (
+    <S3FileSelectWrapped
+      loading={loading}
+      setLoading={setLoading}
+      files={files}
+      setFiles={setFiles}
+      applyPermaStoreValues={applyPermaStoreValues}
+      permaStoreInputs={permaStoreData?.inputValues}
+    />
   );
 }

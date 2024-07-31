@@ -14,6 +14,9 @@ interface State {
 
   callStackCache: Record<string, any>;
   setCallStackCache: (csi: number, value: any) => void;
+
+  permaStore: Record<string, any>;
+  addToPermaStore: (key: string, value: any) => void;
 }
 
 export const useMyStore = create<State>()((set) => ({
@@ -49,6 +52,15 @@ export const useMyStore = create<State>()((set) => ({
       callStackCache: {
         ...state.callStackCache,
         [csi]: value,
+      },
+    })),
+
+  permaStore: {},
+  addToPermaStore: (key, value) =>
+    set((state) => ({
+      permaStore: {
+        ...state.permaStore,
+        [key]: value,
       },
     })),
 }));

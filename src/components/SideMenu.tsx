@@ -12,7 +12,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-import { toast } from "sonner"
+import { toast } from "sonner";
+import { useMyStore } from "@/helpers/store";
 
 export default function SideMenu() {
   return (
@@ -29,7 +30,7 @@ export default function SideMenu() {
           <TooltipTrigger asChild>
             <a
               onClick={() => {
-                toast("kek")
+                toast("kek");
               }}
               href="#"
               // className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8"
@@ -46,6 +47,9 @@ export default function SideMenu() {
             <a
               href="#"
               className="flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:text-foreground md:h-8 md:w-8"
+              onClick={() => {
+                useMyStore.getState().pushToCallStack("events", []);
+              }}
             >
               <CalendarClock className="h-5 w-5" />
               <span className="sr-only">Events</span>
@@ -72,6 +76,9 @@ export default function SideMenu() {
             <a
               href="#"
               className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8"
+              onClick={() => {
+                // useMyStore.getState().pushToCallStack("fileSelect", []);
+              }}
             >
               <Settings className="h-5 w-5" />
               <span className="sr-only">Settings</span>

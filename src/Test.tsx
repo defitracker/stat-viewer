@@ -14,8 +14,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SideMenu from "./components/SideMenu";
 import Header from "./components/Header";
-import FileSelect from "./components/FileSelect";
-import S3FileSelect from "./components/S3FileSelect";
+import Renderer from "./components/Renderer";
 
 export function Test() {
   return (
@@ -24,7 +23,8 @@ export function Test() {
       <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
         <Header />
         <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
-          <Tabs defaultValue="all">
+          <Renderer />
+          {/* <Tabs defaultValue="all">
             <div className="flex items-center">
               <TabsList>
                 <TabsTrigger value="all">All</TabsTrigger>
@@ -71,20 +71,8 @@ export function Test() {
               </div>
             </div>
             <TabsContent value="all">
-              {/* 
-              
-              */}
-
-              <div className="flex flex-col gap-4">
-                <FileSelect />
-                <S3FileSelect />
-              </div>
-
-              {/* 
-              
-              */}
             </TabsContent>
-          </Tabs>
+          </Tabs> */}
         </main>
       </div>
     </div>

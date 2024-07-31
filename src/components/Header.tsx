@@ -1,12 +1,12 @@
 import {
   Home,
-  LineChart,
+  Activity,
+  CalendarClock,
   Package,
   Package2,
   PanelLeft,
-  Search,
   ShoppingCart,
-  Users2,
+  File,
 } from "lucide-react";
 
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -27,8 +27,18 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useMyStore } from "@/helpers/store";
+import { useShallow } from "zustand/react/shallow";
+import React from "react";
 
 export default function Header() {
+  const { callStack, fileName } = useMyStore(
+    useShallow((state) => ({
+      callStack: state.callStack,
+      fileName: state.fileName,
+    }))
+  );
+
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
       <Sheet>
@@ -45,7 +55,7 @@ export default function Header() {
               className="group flex h-10 w-10 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:text-base"
             >
               <Package2 className="h-5 w-5 transition-all group-hover:scale-110" />
-              <span className="sr-only">Acme Inc</span>
+              <span className="sr-only">StatViewer</span>
             </a>
             <a
               href="#"
@@ -58,74 +68,108 @@ export default function Header() {
               href="#"
               className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
             >
-              <ShoppingCart className="h-5 w-5" />
-              Orders
+              <CalendarClock className="h-5 w-5" />
+              Events
             </a>
             <a
               href="#"
               className="flex items-center gap-4 px-2.5 text-foreground"
             >
-              <Package className="h-5 w-5" />
-              Products
+              <Activity className="h-5 w-5" />
+              Iterations
             </a>
-            <a
-              href="#"
-              className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
-            >
-              <Users2 className="h-5 w-5" />
-              Customers
-            </a>
-            <a
+            {/* <a
               href="#"
               className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
             >
               <LineChart className="h-5 w-5" />
               Settings
-            </a>
+            </a> */}
           </nav>
         </SheetContent>
       </Sheet>
       <Breadcrumb className="hidden md:flex">
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink asChild>
+            <BreadcrumbLink
+              asChild
+              className="cursor-pointer"
+              onClick={() => {
+                useMyStore.getState().popFromCallStack(callStack.length);
+              }}
+            >
               <BreadcrumbPage>Home</BreadcrumbPage>
             </BreadcrumbLink>
           </BreadcrumbItem>
-          {/* <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <a href="#">Products</a>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <a href="#">All Products</a>
-            </BreadcrumbLink>
-          </BreadcrumbItem> */}
+          {callStack.map((v, idx) => {
+            const text = `${v.fName}(${v.params.length > 0 ? ".." : ""})`;
+            return (
+              <React.Fragment key={idx}>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbLink asChild>
+                    <div
+                      className={`${
+                        idx < callStack.length - 1
+                          ? "cursor-pointer"
+                          : "cursor-default"
+                      }`}
+                      onClick={() => {
+                        if (idx < callStack.length - 1) {
+                          const numToPop = callStack.length - 1 - idx;
+                          useMyStore.getState().popFromCallStack(numToPop);
+                        }
+                      }}
+                    >
+                      {idx < callStack.length - 1 ? (
+                        <>{text}</>
+                      ) : (
+                        <BreadcrumbPage>{text}</BreadcrumbPage>
+                      )}
+                    </div>
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+              </React.Fragment>
+            );
+          })}
         </BreadcrumbList>
       </Breadcrumb>
-      <div className="relative ml-auto flex-1 md:grow-0">
-        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-        <div className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[320px]">
-          kek
-        </div>
-      </div>
-      <DropdownMenu>
+
+      <Button
+        size="sm"
+        variant="outline"
+        className="gap-1 ml-auto"
+        onClick={() => {
+          const callStack = useMyStore.getState().callStack;
+          if (
+            callStack.length > 0 &&
+            callStack[callStack.length - 1].fName === "fileSelect"
+          ) {
+            //
+          } else {
+            useMyStore.getState().pushToCallStack("fileSelect", []);
+          }
+        }}
+      >
+        <File className="h-3.5 w-3.5" />
+        <span className="text-xs sm:not-sr-only sm:whitespace-nowrap">
+          {fileName.length > 0 ? fileName : "No file selected"}
+        </span>
+      </Button>
+      {/* <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
             variant="outline"
             size="icon"
             className="overflow-hidden rounded-full"
           >
-            {/* <Image
-                  src="/placeholder-user.jpg"
-                  width={36}
-                  height={36}
-                  alt="Avatar"
-                  className="overflow-hidden rounded-full"
-                /> */}
+            <Image
+              src="/placeholder-user.jpg"
+              width={36}
+              height={36}
+              alt="Avatar"
+              className="overflow-hidden rounded-full"
+            />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
@@ -136,7 +180,7 @@ export default function Header() {
           <DropdownMenuSeparator />
           <DropdownMenuItem>Logout</DropdownMenuItem>
         </DropdownMenuContent>
-      </DropdownMenu>
+      </DropdownMenu> */}
     </header>
   );
 }

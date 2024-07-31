@@ -7,6 +7,7 @@ import {
 import { Paperclip } from "lucide-react";
 import { useState } from "react";
 import { Card } from "./ui/card";
+import { useMyStore } from "@/helpers/store";
 
 export default function FileSelect() {
   const [files, setFiles] = useState<File[] | null>(null);
@@ -15,7 +16,23 @@ export default function FileSelect() {
     <Card>
       <FileUploader
         value={files}
-        onValueChange={setFiles}
+        onValueChange={(newFiles) => {
+          setFiles(newFiles);
+          const file = newFiles?.[0];
+          if (file) {
+            useMyStore.getState().setFileName(file.name);
+            const reader = new FileReader();
+            reader.addEventListener("load", (event) => {
+              const resString = event.target?.result ?? "{}";
+              const jsonRes = JSON.parse(resString as string);
+              const { callStack, popFromCallStack, setFileData } =
+                useMyStore.getState();
+              setFileData(jsonRes);
+              popFromCallStack(callStack.length);
+            });
+            reader.readAsText(file);
+          }
+        }}
         dropzoneOptions={{
           multiple: false,
         }}
