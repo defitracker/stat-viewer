@@ -3,28 +3,27 @@ import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
 import "./App.css";
 
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { useMyStore } from "./helpers/store";
+import { useShallow } from "zustand/react/shallow";
+import { Test } from "./Test";
+import { TooltipProvider } from "@/components/ui/tooltip";
+
+import { Toaster } from "@/components/ui/sonner"
 
 function App() {
+  // const { fileData } = useMyStore(
+  //   useShallow((state) => ({
+  //     fileData: state.fileData,
+  //   }))
+  // );
+
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger>Open</DropdownMenuTrigger>
-      <DropdownMenuContent>
-        <DropdownMenuLabel>My Account</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem>Profile</DropdownMenuItem>
-        <DropdownMenuItem>Billing</DropdownMenuItem>
-        <DropdownMenuItem>Team</DropdownMenuItem>
-        <DropdownMenuItem>Subscription</DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <>
+      <TooltipProvider>
+        <Test />
+        <Toaster />
+      </TooltipProvider>
+    </>
   );
 }
 
