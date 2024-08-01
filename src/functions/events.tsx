@@ -4,6 +4,7 @@ import { ChevronLeft, Columns2, RotateCcw } from "lucide-react";
 
 import {
   DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
@@ -17,11 +18,29 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { EventEntries, EventEntry } from "@/helpers/types";
+
 import { AgGridReact } from "ag-grid-react";
+import { LicenseManager } from "ag-grid-enterprise";
+import { LicenseManager as ChartLicenceManager } from "ag-grid-charts-enterprise";
+
 import { useMemo, useState } from "react";
 import { ColDef } from "ag-grid-community";
+import FullHeight from "@/components/FullHeight";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
-export default function events(csi: number) {
+LicenseManager.setLicenseKey(
+  "DownloadDevTools_COM_NDEwMjM0NTgwMDAwMA==59158b5225400879a12a96634544f5b6"
+);
+ChartLicenceManager.setLicenseKey(
+  "DownloadDevTools_COM_NDEwMjM0NTgwMDAwMA==59158b5225400879a12a96634544f5b6"
+);
+
+const USDollarFormat = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+});
+
+export function events(csi: number) {
   return <TableWrapper csi={csi} />;
 }
 
@@ -33,30 +52,56 @@ function TableWrapper({ csi }: { csi: number }) {
   console.log("Loaded table state", tableState);
 
   const availableKeysMap = useMemo(() => {
-    return Object.values(fileData.eventEntries).reduce(
+    const rowOrderPriority = [
+      "eventEntryId",
+      "timestamp",
+      "eventName",
+      "network",
+      "block",
+      "eventVolumeUsd"
+    ];
+    const keys = Object.values(fileData.eventEntries).reduce(
       (acc, cur) => ({
         ...acc,
         ...Object.fromEntries(Object.keys(cur).map((k) => [k, 0])),
       }),
       {}
     );
+    const keysSorted = Object.keys(keys).sort((a, b) => {
+      const aIdx = rowOrderPriority.indexOf(a);
+      const bIdx = rowOrderPriority.indexOf(b);
+      if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
+      else if (aIdx !== -1) return -1;
+      else return 1;
+    });
+    return keysSorted;
   }, []);
 
-  const _visibleKeys = Object.fromEntries(
-    Object.entries(availableKeysMap).map(([key]) => [key, false])
-  );
-  _visibleKeys["eventEntryId"] = true;
-  _visibleKeys["timestamp"] = true;
-  _visibleKeys["network"] = true;
-  _visibleKeys["eventName"] = true;
-  _visibleKeys["eventVolumeUsd"] = true;
+  const getDefaultVisibleKeys = () => {
+    // const _visibleKeys = Object.fromEntries(
+    //   Object.entries(availableKeysMap).map(([key]) => [key, false])
+    // );
+    // _visibleKeys["eventEntryId"] = true;
+    // _visibleKeys["timestamp"] = true;
+    // _visibleKeys["network"] = true;
+    // _visibleKeys["eventName"] = true;
+    // _visibleKeys["eventVolumeUsd"] = true;
+    const _visibleKeys = Object.fromEntries(
+      availableKeysMap.map((key) => [key, true])
+    );
+    return _visibleKeys;
+  };
 
   const [visibleKeys, setVisibleKeys] = useState<{ [k: string]: boolean }>(
-    _visibleKeys
+    getDefaultVisibleKeys()
   );
 
   const memoTable = useMemo(() => {
-    const colDefs = getColDefs(fileData.eventEntries, visibleKeys);
+    const colDefs = getColDefs(
+      fileData.eventEntries,
+      availableKeysMap,
+      visibleKeys
+    );
     const rowData = Object.values(fileData.eventEntries);
 
     return (
@@ -72,19 +117,27 @@ function TableWrapper({ csi }: { csi: number }) {
         columnDefs={colDefs}
         // defaultColDef={{ flex: 1 }}
         pagination={true}
+        rowGroupPanelShow={"always"}
         // embedFullWidthRows={true}
+        defaultColDef={{
+          filter: true,
+          enableRowGroup: true,
+        }}
+        enableCharts={true}
+        enableRangeSelection={true}
         alwaysShowHorizontalScroll={true}
+        paginationAutoPageSize={true}
         onRowClicked={(e) => {
-          console.log("Clicked", e.data);
-          if (e.data) {
-            useMyStore
-              .getState()
-              .pushToCallStack("event", [e.data.eventEntryId]);
-          }
+          // console.log("Clicked", e.data);
+          // if (e.data) {
+          //   useMyStore
+          //     .getState()
+          //     .pushToCallStack("event", [e.data.eventEntryId]);
+          // }
         }}
       />
     );
-  }, [visibleKeys]);
+  }, [visibleKeys, availableKeysMap]);
 
   return (
     <div className="w-full flex flex-col gap-4">
@@ -103,26 +156,78 @@ function TableWrapper({ csi }: { csi: number }) {
         <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
           Events
         </h1>
-        {/* <Badge variant="outline" className="ml-auto sm:ml-0">
-          In stock
-        </Badge> */}
         <div className="items-center flex gap-2 md:ml-auto">
-          <Button variant="outline" size="sm">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setVisibleKeys(getDefaultVisibleKeys());
+            }}
+          >
             <RotateCcw className="sm:hidden h-4 w-4" />
             <span className="hidden sm:block">Reset</span>
           </Button>
-          <Button size="sm">
-            <Columns2 className="sm:hidden h-4 w-4" />
-            <span className="hidden sm:block">Select columns</span>
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger>
+              <Button size="sm">
+                <Columns2 className="sm:hidden h-4 w-4" />
+                <span className="hidden sm:block">Select columns</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem
+                className="cursor-pointer"
+                onClick={() => {
+                  setVisibleKeys(
+                    Object.fromEntries(
+                      Object.entries(visibleKeys).map((k) => [k[0], true])
+                    )
+                  );
+                }}
+              >
+                Enable all
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="cursor-pointer"
+                onClick={() => {
+                  const newKeys = Object.fromEntries(
+                    Object.entries(visibleKeys).map((k) => [k[0], false])
+                  );
+                  newKeys["eventEntryId"] = true;
+                  setVisibleKeys(newKeys);
+                }}
+              >
+                Disable all
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <ScrollArea className="h-[250px]">
+                {availableKeysMap.map((key) => {
+                  return (
+                    <DropdownMenuCheckboxItem
+                      key={key}
+                      className="cursor-pointer"
+                      checked={visibleKeys[key]}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (key === "eventEntryId") return;
+                        setVisibleKeys({
+                          ...visibleKeys,
+                          [key]: !visibleKeys[key],
+                        });
+                      }}
+                    >
+                      {key}
+                    </DropdownMenuCheckboxItem>
+                  );
+                })}
+              </ScrollArea>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
-      <div
-        className="ag-theme-quartz" // applying the Data Grid theme
-        style={{ height: 650 }} // the Data Grid will fill the size of the parent container
-      >
+      <FullHeight className="ag-theme-quartz" minus={20}>
         {memoTable}
-      </div>
+      </FullHeight>
     </div>
   );
 }
@@ -130,28 +235,59 @@ function TableWrapper({ csi }: { csi: number }) {
 const CUSTOM_COLDEFS: {
   [key: string]: ColDef<EventEntry>;
 } = {
+  eventEntryId: {
+    field: "eventEntryId",
+    pinned: true,
+    cellClass: "cursor-pointer",
+    onCellClicked: (e) => {
+      if (e.data) {
+        useMyStore.getState().pushToCallStack("event", [e.data.eventEntryId]);
+      }
+    },
+  },
   timestamp: {
     field: "timestamp",
-    valueGetter: (e) => new Date(e.data?.timestamp ?? 0).toLocaleTimeString(),
+    valueFormatter: (e) => new Date(e.data?.timestamp ?? 0).toUTCString(),
     filter: true,
+  },
+  iterations: {
+    field: "iterations",
+    valueGetter: (e) => e.data?.iterations.length ?? 0,
+  },
+  network: {
+    field: "network",
+    // cellRenderer: (e: any) => {
+    //   return (
+    //     <>
+    //       {"{img}"} {e.value}
+    //     </>
+    //   );
+    // },
+  },
+  eventVolumeUsd: {
+    field: "eventVolumeUsd",
+    valueGetter: (e) => parseFloat(e.data?.eventVolumeUsd ?? "0"),
+    valueFormatter: (e) =>
+      USDollarFormat.format(parseFloat(e.data?.eventVolumeUsd ?? "0")),
   },
 };
 
 function getColDefs(
   eventEntries: EventEntries,
+  keys: string[],
   visibleKeys: { [k: string]: boolean }
 ) {
   const colDefs: ColDef<EventEntry>[] = [];
 
-  const keys = Object.values(eventEntries).reduce(
-    (acc, cur) => ({
-      ...acc,
-      ...Object.fromEntries(Object.keys(cur).map((k) => [k, 0])),
-    }),
-    {}
-  );
+  // const keys = Object.values(eventEntries).reduce(
+  //   (acc, cur) => ({
+  //     ...acc,
+  //     ...Object.fromEntries(Object.keys(cur).map((k) => [k, 0])),
+  //   }),
+  //   {}
+  // );
 
-  for (const key of Object.keys(keys)) {
+  for (const key of keys) {
     if (!visibleKeys[key]) continue;
     if (key in CUSTOM_COLDEFS) {
       colDefs.push(CUSTOM_COLDEFS[key]);

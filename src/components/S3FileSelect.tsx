@@ -34,6 +34,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import clsx from "clsx";
 import { useMyStore } from "@/helpers/store";
+import FullHeight from "./FullHeight";
 
 const formSchema = z.object({
   region: z.string().min(1, { message: "region is required" }),
@@ -207,58 +208,72 @@ function S3FileSelectWrapped({
       {
         field: "timeStarted",
         flex: 1,
-        valueGetter: (v) => new Date(v.data?.timeStarted ?? 0).toUTCString(),
-        comparator: (valueA, valueB, nodeA, nodeB, isDescending) => {
-          const a = nodeA.data?.timeStarted ?? 0;
-          const b = nodeB.data?.timeStarted ?? 0;
-          return a - b;
-        },
+        valueFormatter: (v) => new Date(v.data?.timeStarted ?? 0).toUTCString(),
       },
       {
         field: "timeUploaded",
         flex: 1,
-        valueGetter: (v) => new Date(v.data?.timeUploaded ?? 0).toUTCString(),
-        comparator: (valueA, valueB, nodeA, nodeB, isDescending) => {
-          const a = nodeA.data?.timeUploaded ?? 0;
-          const b = nodeB.data?.timeUploaded ?? 0;
-          return a - b;
-        },
+        valueFormatter: (v) =>
+          new Date(v.data?.timeUploaded ?? 0).toUTCString(),
       },
       {
         field: "filesize",
         width: 150,
-        valueGetter: (v) => getFileSizeString(v.data?.filesize),
-        comparator: (valueA, valueB, nodeA, nodeB, isDescending) => {
-          const a = nodeA.data?.filesize ?? 0;
-          const b = nodeB.data?.filesize ?? 0;
-          return a - b;
-        },
+        valueFormatter: (v) => getFileSizeString(v.data?.filesize),
       },
     ];
 
     // const gridRef = useRef<AgGridReact | null>(null);
 
     return (
-      <CardContent className="grid gap-2">
-        <div className="ag-theme-quartz h-[400px]">
+      <CardContent className="p-4 pt-0">
+        <FullHeight className="ag-theme-quartz" minus={50}>
           <AgGridReact
+            className={`${loading ? "animate-pulse" : ""}`}
             // ref={gridRef}
             initialState={{
               sort: {
                 sortModel: [{ colId: "timeStarted", sort: "desc" }],
               },
             }}
+            onFirstDataRendered={(e) => {
+              e.api.autoSizeAllColumns();
+              // for (let i = 0; i < 1; i++) {
+              //   setTimeout(() => {
+              //     e.api.autoSizeAllColumns();
+              //     // e.api.sizeColumnsToFit();
+              //   }, 100 * i);
+              // }
+            }}
             rowData={rowData}
             columnDefs={colDefs}
-            // defaultColDef={{ flex: 1 }}
             pagination={true}
+            // suppressPaginationPanel={true}
             alwaysShowHorizontalScroll={true}
             multiSortKey={"ctrl"}
-            onRowClicked={(e) => {
-              console.log("Clicked", e.data);
+            onRowClicked={async (e) => {
+              if (!e.data) return console.error("No e.data", e);
+
+              const manager = S3Connect.getManager();
+              if (!manager) return console.error("No s3 manager");
+
+              setLoading(true);
+              useMyStore.getState().setFileName(e.data.filename);
+
+              const arrayBuffer = await manager.getObject(e.data.filename);
+              if (arrayBuffer !== undefined) {
+                const enc = new TextDecoder("utf-8");
+                const fileString = enc.decode(arrayBuffer as Uint8Array);
+                const json = JSON.parse(fileString);
+                useMyStore.getState().setFileData(json);
+                useMyStore
+                  .getState()
+                  .popFromCallStack(useMyStore.getState().callStack.length);
+              }
+              setLoading(false);
             }}
           />
-        </div>
+        </FullHeight>
       </CardContent>
     );
   };
@@ -266,7 +281,7 @@ function S3FileSelectWrapped({
   return (
     <div className="w-full">
       <Card
-        className={clsx("w-full mx-auto transition-all duration-200 ease-out", {
+        className={clsx("w-full mx-auto transition-all duration-100 ease-out", {
           "max-w-sm": files === null,
           "max-w-full": files !== null,
         })}

@@ -12,10 +12,19 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-import { toast } from "sonner";
 import { useMyStore } from "@/helpers/store";
+import { useShallow } from "zustand/react/shallow";
+import clsx from "clsx";
 
 export default function SideMenu() {
+  const { callStack } = useMyStore(
+    useShallow((state) => ({
+      callStack: state.callStack,
+    }))
+  );
+
+  const topCallStackFunction = callStack?.[callStack.length - 1]?.fName;
+
   return (
     <aside className="fixed inset-y-0 left-0 z-10 hidden w-14 flex-col border-r bg-background sm:flex">
       <nav className="flex flex-col items-center gap-4 px-2 py-4">
@@ -30,11 +39,16 @@ export default function SideMenu() {
           <TooltipTrigger asChild>
             <a
               onClick={() => {
-                toast("kek");
+                useMyStore.getState().popFromCallStack(callStack.length);
               }}
               href="#"
-              // className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8"
-              className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent text-accent-foreground transition-colors hover:text-foreground md:h-8 md:w-8"
+              className={clsx(
+                "flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:text-foreground md:h-8 md:w-8",
+                {
+                  "text-muted-foreground": callStack.length > 0,
+                  "bg-accent text-accent-foreground": callStack.length === 0,
+                }
+              )}
             >
               <Home className="h-5 w-5" />
               <span className="sr-only">Dashboard</span>
@@ -46,7 +60,14 @@ export default function SideMenu() {
           <TooltipTrigger asChild>
             <a
               href="#"
-              className="flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:text-foreground md:h-8 md:w-8"
+              className={clsx(
+                "flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:text-foreground md:h-8 md:w-8",
+                {
+                  "text-muted-foreground": topCallStackFunction !== "events",
+                  "bg-accent text-accent-foreground":
+                    topCallStackFunction === "events",
+                }
+              )}
               onClick={() => {
                 useMyStore.getState().pushToCallStack("events", []);
               }}
@@ -61,7 +82,18 @@ export default function SideMenu() {
           <TooltipTrigger asChild>
             <a
               href="#"
-              className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent text-accent-foreground transition-colors hover:text-foreground md:h-8 md:w-8"
+              className={clsx(
+                "flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:text-foreground md:h-8 md:w-8",
+                {
+                  "text-muted-foreground":
+                    topCallStackFunction !== "iterations",
+                  "bg-accent text-accent-foreground":
+                    topCallStackFunction === "iterations",
+                }
+              )}
+              onClick={() => {
+                useMyStore.getState().pushToCallStack("iterations", []);
+              }}
             >
               <Activity className="h-5 w-5" />
               <span className="sr-only">Iterations</span>
