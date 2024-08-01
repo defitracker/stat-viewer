@@ -6,6 +6,7 @@ export type EventEntry = {
   address: string;
   txHash: string;
   txIndex: number;
+  logIndex: number;
   eventName: string;
   topic0: string;
 
@@ -74,6 +75,9 @@ export type IterationEntry = {
 
   bestTvResDebugData: string[];
   timeForBestTvRes: number;
+};
+export type IterationEntryExt = IterationEntry & {
+  timestamp: number;
 };
 
 export type EventEntries = {

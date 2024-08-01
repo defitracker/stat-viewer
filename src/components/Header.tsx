@@ -102,7 +102,7 @@ export default function Header() {
             </BreadcrumbLink>
           </BreadcrumbItem>
           {callStack.map((v, idx) => {
-            const text = `${v.fName}(${v.params.length > 0 ? ".." : ""})`;
+            const text = `${v.fName}(${v.params.length > 0 ? `${v.params[0].toString().slice(0,4)}..` : ""})`;
             return (
               <React.Fragment key={idx}>
                 <BreadcrumbSeparator />

@@ -218,6 +218,7 @@ function S3FileSelectWrapped({
       },
       {
         field: "filesize",
+        flex: 1,
         width: 150,
         valueFormatter: (v) => getFileSizeString(v.data?.filesize),
       },
@@ -237,13 +238,13 @@ function S3FileSelectWrapped({
               },
             }}
             onFirstDataRendered={(e) => {
-              e.api.autoSizeAllColumns();
-              // for (let i = 0; i < 1; i++) {
-              //   setTimeout(() => {
-              //     e.api.autoSizeAllColumns();
-              //     // e.api.sizeColumnsToFit();
-              //   }, 100 * i);
-              // }
+              // e.api.autoSizeAllColumns();
+              for (let i = 0; i < 15; i += 3) {
+                setTimeout(() => {
+                  // e.api.autoSizeAllColumns();
+                  e.api.sizeColumnsToFit();
+                }, 100 * i);
+              }
             }}
             rowData={rowData}
             columnDefs={colDefs}
@@ -281,7 +282,7 @@ function S3FileSelectWrapped({
   return (
     <div className="w-full">
       <Card
-        className={clsx("w-full mx-auto transition-all duration-100 ease-out", {
+        className={clsx("w-full mx-auto transition-all duration-50 ease-in-out", {
           "max-w-sm": files === null,
           "max-w-full": files !== null,
         })}

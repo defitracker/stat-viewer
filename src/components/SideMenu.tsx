@@ -31,6 +31,9 @@ export default function SideMenu() {
         <a
           href="#"
           className="group flex h-9 w-9 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:h-8 md:w-8 md:text-base"
+          onClick={() => {
+            useMyStore.getState().popFromCallStack(callStack.length);
+          }}
         >
           <Package2 className="h-4 w-4 transition-all group-hover:scale-110" />
           <span className="sr-only">Acme Inc</span>
@@ -69,7 +72,9 @@ export default function SideMenu() {
                 }
               )}
               onClick={() => {
-                useMyStore.getState().pushToCallStack("events", []);
+                if (topCallStackFunction !== "events") {
+                  useMyStore.getState().pushToCallStack("events", []);
+                }
               }}
             >
               <CalendarClock className="h-5 w-5" />
@@ -92,7 +97,9 @@ export default function SideMenu() {
                 }
               )}
               onClick={() => {
-                useMyStore.getState().pushToCallStack("iterations", []);
+                if (topCallStackFunction !== "iterations") {
+                  useMyStore.getState().pushToCallStack("iterations", []);
+                }
               }}
             >
               <Activity className="h-5 w-5" />

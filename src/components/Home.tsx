@@ -14,15 +14,15 @@ export default function Home() {
 
   useEffect(() => {
     if (fileData === null) {
-        const { callStack, pushToCallStack } = useMyStore.getState()
-        if (callStack.length === 0) {
-            pushToCallStack("fileSelect", []);
-        }
+      const { callStack, pushToCallStack } = useMyStore.getState();
+      if (callStack.length === 0) {
+        pushToCallStack("fileSelect", []);
+      }
     }
   }, [fileData]);
 
   return (
-    <div className="w-full flex-1 gap-4">
+    <div className="w-full flex flex-col gap-4">
       <div className="flex items-center gap-4">
         {/* <Button variant="outline" size="icon" className="h-7 w-7">
           <ChevronLeft className="h-4 w-4" />
@@ -40,6 +40,22 @@ export default function Home() {
           </Button>
           <Button size="sm">Save Product</Button>
         </div> */}
+      </div>
+      <div className="flex flex-col gap-2">
+        <Button
+          variant="outline"
+          onClick={() => useMyStore.getState().pushToCallStack("events", [])}
+        >
+          Open events
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() =>
+            useMyStore.getState().pushToCallStack("iterations", [])
+          }
+        >
+          Open iterations
+        </Button>
       </div>
     </div>
   );

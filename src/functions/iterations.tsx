@@ -10,7 +10,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { EventEntries, EventEntry } from "@/helpers/types";
+import {
+  EventEntries,
+  EventEntry,
+  IterationEntry,
+  IterationEntryExt,
+} from "@/helpers/types";
 
 import { AgGridReact } from "ag-grid-react";
 
@@ -19,27 +24,19 @@ import { ColDef } from "ag-grid-community";
 import FullHeight from "@/components/FullHeight";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-const USDollarFormat = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-});
-
-export function events(csi: number) {
+export function iterations(csi: number) {
   return <TableWrapper csi={csi} />;
 }
 
-export const EVENTS_KEY_ORDER_PRIORITY = [
-  "eventEntryId",
+export const ITERATIONS_KEY_ORDER_PRIORITY = [
+  "iterationEntryId",
+  "parentId",
   "timestamp",
-  "eventName",
-  "network",
-  "block",
-  "eventVolumeUsd",
-  "iterations",
-  "address",
-  "txHash",
-  "token0",
-  "token1",
+  "tokenName",
+  "networkA",
+  "networkB",
+  "greenNetwork",
+  "estimatedBestTv",
 ];
 
 function TableWrapper({ csi }: { csi: number }) {
@@ -49,8 +46,14 @@ function TableWrapper({ csi }: { csi: number }) {
   const tableState = cacheData?.tableState ?? undefined;
   console.log("Loaded table state", tableState);
 
+  const iterationEntriesExt = Object.fromEntries(
+    Object.entries(fileData.iterationEntries).map(([id, ie]) => {
+      return [id, ieToIeExt(ie, useMyStore.getState().fileData!.eventEntries)];
+    })
+  );
+
   const availableKeysMap = useMemo(() => {
-    const keys = Object.values(fileData.eventEntries).reduce(
+    const keys = Object.values(iterationEntriesExt).reduce(
       (acc, cur) => ({
         ...acc,
         ...Object.fromEntries(Object.keys(cur).map((k) => [k, 0])),
@@ -58,8 +61,8 @@ function TableWrapper({ csi }: { csi: number }) {
       {}
     );
     const keysSorted = Object.keys(keys).sort((a, b) => {
-      const aIdx = EVENTS_KEY_ORDER_PRIORITY.indexOf(a);
-      const bIdx = EVENTS_KEY_ORDER_PRIORITY.indexOf(b);
+      const aIdx = ITERATIONS_KEY_ORDER_PRIORITY.indexOf(a);
+      const bIdx = ITERATIONS_KEY_ORDER_PRIORITY.indexOf(b);
       if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
       else if (aIdx !== -1) return -1;
       else return 1;
@@ -88,7 +91,7 @@ function TableWrapper({ csi }: { csi: number }) {
 
   const memoTable = useMemo(() => {
     const colDefs = getColDefs(availableKeysMap, visibleKeys);
-    const rowData = Object.values(fileData.eventEntries);
+    const rowData = Object.values(iterationEntriesExt);
 
     return (
       <AgGridReact
@@ -96,6 +99,9 @@ function TableWrapper({ csi }: { csi: number }) {
           tableState
             ? tableState
             : {
+                columnVisibility: {
+                  hiddenColIds: ["parentId"],
+                },
                 sort: {
                   sortModel: [{ colId: "timestamp", sort: "desc" }],
                 },
@@ -107,7 +113,7 @@ function TableWrapper({ csi }: { csi: number }) {
             tableState: e.state,
           });
         }}
-        rowData={rowData as unknown as EventEntry[]}
+        rowData={rowData as unknown as IterationEntryExt[]}
         columnDefs={colDefs}
         // defaultColDef={{ flex: 1 }}
         pagination={true}
@@ -140,7 +146,7 @@ function TableWrapper({ csi }: { csi: number }) {
           <span className="sr-only">Back</span>
         </Button>
         <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
-          Events
+          Iterations
         </h1>
         <div className="items-center flex gap-2 md:ml-auto">
           <Button
@@ -220,73 +226,67 @@ function TableWrapper({ csi }: { csi: number }) {
 }
 
 const CUSTOM_COLDEFS: {
-  [key: string]: ColDef<EventEntry>;
+  [key: string]: ColDef<IterationEntryExt>;
 } = {
-  eventEntryId: {
-    field: "eventEntryId",
+  iterationEntryId: {
+    field: "iterationEntryId",
     pinned: true,
     cellClass: "cursor-pointer",
     onCellClicked: (e) => {
       if (e.data) {
-        useMyStore.getState().pushToCallStack("event", [e.data.eventEntryId]);
+        useMyStore
+          .getState()
+          .pushToCallStack("iteration", [e.data.iterationEntryId]);
       }
     },
+  },
+  parentId: {
+    field: "parentId",
+    hide: true,
   },
   timestamp: {
     field: "timestamp",
     valueFormatter: (e) => new Date(e.data?.timestamp ?? 0).toUTCString(),
     filter: false,
+    headerName: "Time of event",
   },
-  iterations: {
-    field: "iterations",
-    valueGetter: (e) => e.data?.iterations.length ?? 0,
-  },
-  network: {
-    field: "network",
-    // cellRenderer: (e: any) => {
-    //   return (
-    //     <>
-    //       {"{img}"} {e.value}
-    //     </>
-    //   );
-    // },
-  },
-  block: {
-    field: "block",
+  timeForFirstGreenNetworkRes: {
+    field: "timeForFirstGreenNetworkRes",
     filter: "agNumberColumnFilter",
   },
-  eventVolumeUsd: {
-    field: "eventVolumeUsd",
+  timeForOtherTVs: {
+    field: "timeForOtherTVs",
     filter: "agNumberColumnFilter",
-    valueGetter: (e) => parseFloat(e.data?.eventVolumeUsd ?? "0"),
-    valueFormatter: (e) =>
-      USDollarFormat.format(parseFloat(e.data?.eventVolumeUsd ?? "0")),
   },
-  address: {
-    field: "address",
-    filter: "agTextColumnFilter",
+  timeForBestTvRes: {
+    field: "timeForBestTvRes",
+    filter: "agNumberColumnFilter",
   },
-  txHash: {
-    field: "txHash",
-    filter: "agTextColumnFilter",
-  },
-  logIndex: {
-    field: "logIndex",
+  estimatedBestTv: {
+    field: "estimatedBestTv",
     filter: "agNumberColumnFilter",
   },
 };
 
 function getColDefs(keys: string[], visibleKeys: { [k: string]: boolean }) {
-  const colDefs: ColDef<EventEntry>[] = [];
+  const colDefs: ColDef<IterationEntryExt>[] = [];
 
   for (const key of keys) {
     if (!visibleKeys[key]) continue;
     if (key in CUSTOM_COLDEFS) {
       colDefs.push(CUSTOM_COLDEFS[key]);
     } else {
-      colDefs.push({ field: key as keyof EventEntry });
+      colDefs.push({ field: key as keyof IterationEntry });
     }
   }
 
   return colDefs;
+}
+
+export function ieToIeExt(ie: IterationEntry, ees: EventEntries) {
+  const ext: IterationEntryExt = {
+    ...ie,
+    timestamp: ees[ie.parentId].timestamp,
+  };
+  return ext;
 }

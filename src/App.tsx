@@ -1,26 +1,35 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
 import "./App.css";
 
-import { useMyStore } from "./helpers/store";
-import { useShallow } from "zustand/react/shallow";
-import { Test } from "./Test";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import SideMenu from "./components/SideMenu";
+import Header from "./components/Header";
+import Renderer from "./components/Renderer";
 
-import { Toaster } from "@/components/ui/sonner"
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "@/components/ui/sonner";
+
+import { LicenseManager } from "ag-grid-enterprise";
+import { LicenseManager as ChartLicenceManager } from "ag-grid-charts-enterprise";
+
+LicenseManager.setLicenseKey(
+  "DownloadDevTools_COM_NDEwMjM0NTgwMDAwMA==59158b5225400879a12a96634544f5b6"
+);
+ChartLicenceManager.setLicenseKey(
+  "DownloadDevTools_COM_NDEwMjM0NTgwMDAwMA==59158b5225400879a12a96634544f5b6"
+);
 
 function App() {
-  // const { fileData } = useMyStore(
-  //   useShallow((state) => ({
-  //     fileData: state.fileData,
-  //   }))
-  // );
-
   return (
     <>
       <TooltipProvider>
-        <Test />
+        <div className="flex min-h-screen w-full flex-col bg-muted/40">
+          <SideMenu />
+          <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
+            <Header />
+            <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
+              <Renderer />
+            </main>
+          </div>
+        </div>
         <Toaster />
       </TooltipProvider>
     </>
