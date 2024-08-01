@@ -1,7 +1,7 @@
 import { functions } from "../functions/index";
-import { useMyStore } from "../store";
+import { useMyStore } from "../helpers/store";
 import { useShallow } from "zustand/react/shallow";
-import DefaultActionList from "./DefaultActionList";
+import Home from "./Home";
 
 export default function Renderer() {
   const { callStack } = useMyStore(
@@ -11,14 +11,12 @@ export default function Renderer() {
   );
 
   if (callStack.length === 0) {
-    return <DefaultActionList />;
+    return <Home />;
   }
 
   const callStackItem = callStack[callStack.length - 1];
   const { fName, params } = callStackItem;
   const csi = callStack.length - 1;
-
-  console.log("Renderer rerender")
 
   if (Object.prototype.hasOwnProperty.call(functions, fName)) {
     // @ts-ignore

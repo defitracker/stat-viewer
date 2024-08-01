@@ -1,66 +1,88 @@
-import { useShallow } from "zustand/react/shallow";
-import { useMyStore } from "../store";
+import {
+  FileUploader,
+  FileUploaderContent,
+  FileUploaderItem,
+  FileInput,
+} from "@/components/extension/file-uploader";
+import { Paperclip } from "lucide-react";
+import { useState } from "react";
+import { Card } from "./ui/card";
+import { useMyStore } from "@/helpers/store";
 
 export default function FileSelect() {
-  const { setFileData, setFileName } = useMyStore(
-    useShallow((state) => ({
-      setFileData: state.setFileData,
-      setFileName: state.setFileName,
-    }))
-  );
-
-  const handleChangeFile = (file: File) => {
-    setFileName(file.name);
-    const reader = new FileReader();
-    reader.addEventListener("load", (event) => {
-      const resString = event.target?.result ?? "{}";
-      const jsonRes = JSON.parse(resString as string);
-      setFileData(jsonRes);
-    });
-    reader.readAsText(file);
-  };
+  const [files, setFiles] = useState<File[] | null>(null);
 
   return (
-    <div>
-      <label
-        htmlFor="dropzone-file"
-        className="flex flex-col items-center w-full max-w-lg p-8 mx-auto mt-2 text-center bg-white border-2 border-gray-300 border-dashed cursor-pointer rounded-xl"
+    <Card>
+      <FileUploader
+        value={files}
+        onValueChange={(newFiles) => {
+          setFiles(newFiles);
+          const file = newFiles?.[0];
+          if (file) {
+            useMyStore.getState().setFileName(file.name);
+            const reader = new FileReader();
+            reader.addEventListener("load", (event) => {
+              const resString = event.target?.result ?? "{}";
+              const jsonRes = JSON.parse(resString as string);
+              const { callStack, popFromCallStack, setFileData } =
+                useMyStore.getState();
+              setFileData(jsonRes);
+              popFromCallStack(callStack.length);
+            });
+            reader.readAsText(file);
+          }
+        }}
+        dropzoneOptions={{
+          multiple: false,
+        }}
+        className="relative bg-background rounded-lg p-2"
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth="1.5"
-          stroke="currentColor"
-          className="w-8 h-8 text-gray-500"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z"
-          />
-        </svg>
-
-        <h2 className="mt-1 font-medium tracking-wide text-gray-700">
-          🤤 GIMME YOUR DATA
-        </h2>
-
-        <p className="mt-2 text-xs tracking-wide text-gray-500">
-          Upload or darg & drop your file JSON.{" "}
-        </p>
-
-        <input
-          id="dropzone-file"
-          type="file"
-          className="hidden"
-          accept=".json"
-          onChange={(e) => {
-            if (e.target.files) {
-              handleChangeFile(e.target.files[0]);
-            }
-          }}
-        />
-      </label>
-    </div>
+        <FileInput className="outline-dashed outline-1 outline-slate-200 py-8">
+          <div className="flex items-center justify-center flex-col pt-3 pb-4 w-full ">
+            <FileSvgDraw />
+          </div>
+        </FileInput>
+        <FileUploaderContent>
+          {files &&
+            files.length > 0 &&
+            files.map((file, i) => (
+              <FileUploaderItem key={i} index={i}>
+                <Paperclip className="h-4 w-4 stroke-current" />
+                <span>{file.name}</span>
+              </FileUploaderItem>
+            ))}
+        </FileUploaderContent>
+      </FileUploader>
+    </Card>
   );
 }
+
+const FileSvgDraw = () => {
+  return (
+    <>
+      <svg
+        className="w-8 h-8 mb-3 text-gray-500 dark:text-gray-400"
+        aria-hidden="true"
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 20 16"
+      >
+        <path
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="2"
+          d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"
+        />
+      </svg>
+      <p className="mb-1 text-sm text-gray-500 dark:text-gray-400">
+        <span className="font-semibold">Click to upload</span>
+        &nbsp; or drag and drop
+      </p>
+      <p className="text-xs text-gray-500 dark:text-gray-400">
+        only JSON files accepted
+      </p>
+    </>
+  );
+};

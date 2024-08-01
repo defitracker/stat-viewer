@@ -1,46 +1,37 @@
 import "./App.css";
+
+import SideMenu from "./components/SideMenu";
 import Header from "./components/Header";
-import FileSelect from "./components/FileSelect";
-import { useMyStore } from "./store";
-import CallStack from "./components/CallStack";
 import Renderer from "./components/Renderer";
-import { useShallow } from "zustand/react/shallow";
-import S3FileSelect from "./components/S3FileSelect";
+
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "@/components/ui/sonner";
+
+import { LicenseManager } from "ag-grid-enterprise";
+import { LicenseManager as ChartLicenceManager } from "ag-grid-charts-enterprise";
+
+LicenseManager.setLicenseKey(
+  "DownloadDevTools_COM_NDEwMjM0NTgwMDAwMA==59158b5225400879a12a96634544f5b6"
+);
+ChartLicenceManager.setLicenseKey(
+  "DownloadDevTools_COM_NDEwMjM0NTgwMDAwMA==59158b5225400879a12a96634544f5b6"
+);
 
 function App() {
-  const { fileData } = useMyStore(
-    useShallow((state) => ({
-      fileData: state.fileData,
-    }))
-  );
-
   return (
     <>
-      <section className="bg-white">
-        <Header />
-        <div className="container px-6 py-2 flex flex-col gap-2 mx-auto">
-          {!fileData && (
-            <>
-              <FileSelect />
-              <span className="relative flex justify-center my-4">
-                <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-transparent bg-gradient-to-r from-transparent via-gray-500 to-transparent opacity-75"></div>
-
-                <span className="relative z-10 bg-white px-6 text-gray-700">
-                  Or load data from S3
-                </span>
-              </span>
-              <S3FileSelect />
-            </>
-          )}
-
-          {fileData && (
-            <>
-              <CallStack />
+      <TooltipProvider>
+        <div className="flex min-h-screen w-full flex-col bg-muted/40">
+          <SideMenu />
+          <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
+            <Header />
+            <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
               <Renderer />
-            </>
-          )}
+            </main>
+          </div>
         </div>
-      </section>
+        <Toaster />
+      </TooltipProvider>
     </>
   );
 }

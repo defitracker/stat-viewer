@@ -1,30 +1,68 @@
-import { useMyStore } from "../store";
+import { Button } from "@/components/ui/button";
+import { useMyStore } from "@/helpers/store";
+import { ChevronLeft } from "lucide-react";
+
+import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { EventEntry, IterationEntry } from "@/helpers/types";
+import { getExplorerUrl } from "@/helpers/helper";
+import { ITERATIONS_KEY_ORDER_PRIORITY } from "./iterations";
 
 export function iteration(csi: number, ieId: string) {
   const ie = useMyStore.getState().fileData!.iterationEntries[ieId];
 
+  const keysSorted = Object.keys(ie).sort((a, b) => {
+    const aIdx = ITERATIONS_KEY_ORDER_PRIORITY.indexOf(a);
+    const bIdx = ITERATIONS_KEY_ORDER_PRIORITY.indexOf(b);
+    if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
+    else if (aIdx !== -1) return -1;
+    else return 1;
+  });
+
   return (
-    <div className="flow-root rounded-lg border border-gray-100 py-3 shadow-sm">
-      <dl className="-my-3 divide-y divide-gray-100 text-sm">
-        {Object.entries(ie).map(([key, value]) => {
-          return (
-            <div
-              key={key}
-              className="grid grid-cols-1 gap-1 p-3 even:bg-gray-50 sm:grid-cols-3 sm:gap-4"
-            >
-              <dt className="font-medium text-gray-900">{key}</dt>
-              <dd className="text-gray-700 sm:col-span-2">
-                {transfromByKey(key, value)}
-              </dd>
-            </div>
-          );
-        })}
-      </dl>
+    <div className="w-full flex flex-col gap-4">
+      <div className="flex items-center gap-4">
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-7 w-7"
+          onClick={() => {
+            useMyStore.getState().popFromCallStack(1);
+          }}
+        >
+          <ChevronLeft className="h-4 w-4" />
+          <span className="sr-only">Back</span>
+        </Button>
+        <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
+          Iteration
+        </h1>
+        <Badge variant="outline" className="ml-auto sm:ml-0">
+          {ieId}
+        </Badge>
+      </div>
+      <Card className="w-full">
+        <CardContent className="py-4">
+          <Table>
+            <TableBody>
+              {keysSorted.map((key) => {
+                const value = ie[key as keyof typeof ie];
+                return (
+                  <TableRow key={key}>
+                    <TableCell className="font-medium">{key}</TableCell>
+                    <TableCell>{transfromByKey(key, value, ie)}</TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 }
 
-function transfromByKey(key: string, value: any) {
+function transfromByKey(key: string, value: any, ie: IterationEntry) {
   if (key === "parentId") {
     return (
       <span

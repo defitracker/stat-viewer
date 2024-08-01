@@ -1,34 +1,75 @@
-import { getExplorerUrl } from "../helper";
-import { useMyStore } from "../store";
-import { EventEntry } from "../types";
+import { Button } from "@/components/ui/button";
+import { useMyStore } from "@/helpers/store";
+import { ChevronLeft } from "lucide-react";
+
+import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { EventEntry } from "@/helpers/types";
+import { getExplorerUrl } from "@/helpers/helper";
+import { EVENTS_KEY_ORDER_PRIORITY } from "./events";
+
+const USDollarFormat = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+});
 
 export function event(csi: number, eeId: string) {
-  const ie = useMyStore.getState().fileData!.eventEntries[eeId];
+  const ee = useMyStore.getState().fileData!.eventEntries[eeId];
+
+  const keysSorted = Object.keys(ee).sort((a, b) => {
+    const aIdx = EVENTS_KEY_ORDER_PRIORITY.indexOf(a);
+    const bIdx = EVENTS_KEY_ORDER_PRIORITY.indexOf(b);
+    if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
+    else if (aIdx !== -1) return -1;
+    else return 1;
+  });
 
   return (
-    <div className="flow-root rounded-lg border border-gray-100 py-3 shadow-sm">
-      <dl className="-my-3 divide-y divide-gray-100 text-sm">
-        {Object.entries(ie).map(([key, value]) => {
-          return (
-            <div
-              key={key}
-              className="grid grid-cols-1 gap-1 p-3 even:bg-gray-50 sm:grid-cols-3 sm:gap-4"
-            >
-              <dt className="font-medium text-gray-900">{key}</dt>
-              <dd className="text-gray-700 sm:col-span-2">
-                {transfromByKey(key, value, ie)}
-              </dd>
-            </div>
-          );
-        })}
-      </dl>
+    <div className="w-full flex flex-col gap-4">
+      <div className="flex items-center gap-4">
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-7 w-7"
+          onClick={() => {
+            useMyStore.getState().popFromCallStack(1);
+          }}
+        >
+          <ChevronLeft className="h-4 w-4" />
+          <span className="sr-only">Back</span>
+        </Button>
+        <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
+          Event
+        </h1>
+        <Badge variant="outline" className="ml-auto sm:ml-0">
+          {eeId}
+        </Badge>
+      </div>
+      <Card className="w-full">
+        <CardContent className="py-4">
+          <Table>
+            <TableBody>
+              {keysSorted.map((key) => {
+                const value = ee[key as keyof typeof ee];
+                return (
+                  <TableRow key={key}>
+                    <TableCell className="font-medium">{key}</TableCell>
+                    <TableCell>{transfromByKey(key, value, ee)}</TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 }
 
-function transfromByKey(key: string, value: any, ie: EventEntry) {
+function transfromByKey(key: string, value: any, ee: EventEntry) {
   if (key === "block") {
-    const baseUrl = getExplorerUrl(ie.network);
+    const baseUrl = getExplorerUrl(ee.network);
     return (
       <a
         href={`${baseUrl}/block/${value}`}
@@ -40,7 +81,7 @@ function transfromByKey(key: string, value: any, ie: EventEntry) {
     );
   }
   if (key === "address") {
-    const baseUrl = getExplorerUrl(ie.network);
+    const baseUrl = getExplorerUrl(ee.network);
     return (
       <a
         href={`${baseUrl}/address/${value}`}
@@ -52,7 +93,7 @@ function transfromByKey(key: string, value: any, ie: EventEntry) {
     );
   }
   if (key === "txHash") {
-    const baseUrl = getExplorerUrl(ie.network);
+    const baseUrl = getExplorerUrl(ee.network);
     return (
       <a
         href={`${baseUrl}/tx/${value}`}
@@ -64,7 +105,7 @@ function transfromByKey(key: string, value: any, ie: EventEntry) {
     );
   }
   if (key === "token0") {
-    const baseUrl = getExplorerUrl(ie.network);
+    const baseUrl = getExplorerUrl(ee.network);
     return (
       <a
         href={`${baseUrl}/token/${value}`}
@@ -76,7 +117,7 @@ function transfromByKey(key: string, value: any, ie: EventEntry) {
     );
   }
   if (key === "token1") {
-    const baseUrl = getExplorerUrl(ie.network);
+    const baseUrl = getExplorerUrl(ee.network);
     return (
       <a
         href={`${baseUrl}/token/${value}`}
@@ -86,6 +127,9 @@ function transfromByKey(key: string, value: any, ie: EventEntry) {
         {value}
       </a>
     );
+  }
+  if (key === "eventVolumeUsd") {
+    return USDollarFormat.format(value);
   }
   if (key === "iterations") {
     return (
