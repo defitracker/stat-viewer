@@ -23,6 +23,7 @@ import { useMemo, useState } from "react";
 import { ColDef } from "ag-grid-community";
 import FullHeight from "@/components/FullHeight";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
 
 export function iterations(csi: number) {
   return <TableWrapper csi={csi} />;
@@ -37,6 +38,10 @@ export const ITERATIONS_KEY_ORDER_PRIORITY = [
   "networkB",
   "greenNetwork",
   "estimatedBestTv",
+  "bestTvCoeff",
+  "bestTvProfit",
+  "totalTimeFromLog",
+  "earlyFinishReason",
 ];
 
 function TableWrapper({ csi }: { csi: number }) {
@@ -100,10 +105,14 @@ function TableWrapper({ csi }: { csi: number }) {
             ? tableState
             : {
                 columnVisibility: {
-                  hiddenColIds: ["parentId"],
+                  hiddenColIds: ["parentId", "greenNetwork"],
                 },
                 sort: {
                   sortModel: [{ colId: "timestamp", sort: "desc" }],
+                  columnPinning: {
+                    leftColIds: ["iterationEntryId"],
+                    rightColIds: [],
+                  },
                 },
               }
         }
@@ -127,6 +136,14 @@ function TableWrapper({ csi }: { csi: number }) {
         // enableRangeSelection={true}
         alwaysShowHorizontalScroll={true}
         paginationAutoPageSize={true}
+        rowClass="cursor-pointer"
+        onRowClicked={(e) => {
+          if (e.data) {
+            useMyStore
+              .getState()
+              .pushToCallStack("iteration", [e.data.iterationEntryId]);
+          }
+        }}
       />
     );
   }, [visibleKeys, availableKeysMap]);
@@ -233,11 +250,11 @@ const CUSTOM_COLDEFS: {
     pinned: true,
     cellClass: "cursor-pointer",
     onCellClicked: (e) => {
-      if (e.data) {
-        useMyStore
-          .getState()
-          .pushToCallStack("iteration", [e.data.iterationEntryId]);
-      }
+      // if (e.data) {
+      //   useMyStore
+      //     .getState()
+      //     .pushToCallStack("iteration", [e.data.iterationEntryId]);
+      // }
     },
   },
   parentId: {
@@ -266,6 +283,42 @@ const CUSTOM_COLDEFS: {
     field: "estimatedBestTv",
     filter: "agNumberColumnFilter",
   },
+  bestTvCoeff: {
+    field: "bestTvCoeff",
+    filter: "agNumberColumnFilter",
+  },
+  bestTvProfit: {
+    field: "bestTvProfit",
+    filter: "agNumberColumnFilter",
+  },
+  totalTimeFromLog: {
+    field: "totalTimeFromLog",
+    filter: "agNumberColumnFilter",
+  },
+  networkA: {
+    field: "networkA",
+    cellRenderer: (params: any) => {
+      if (!params.value) return <></>;
+      const isGreen = params.data?.greenNetwork === params.value;
+      return (
+        <Badge className={isGreen ? "bg-green-200/40" : ""} variant="outline">
+          {params.value}
+        </Badge>
+      );
+    },
+  },
+  networkB: {
+    field: "networkB",
+    cellRenderer: (params: any) => {
+      if (!params.value) return <></>;
+      const isGreen = params.data?.greenNetwork === params.value;
+      return (
+        <Badge className={isGreen ? "bg-green-200/40" : ""} variant="outline">
+          {params.value}
+        </Badge>
+      );
+    },
+  },
 };
 
 function getColDefs(keys: string[], visibleKeys: { [k: string]: boolean }) {
@@ -287,6 +340,12 @@ export function ieToIeExt(ie: IterationEntry, ees: EventEntries) {
   const ext: IterationEntryExt = {
     ...ie,
     timestamp: ees[ie.parentId].timestamp,
+    bestTvCoeff: ie.bestTvResDebugData
+      ? parseFloat(ie.bestTvResDebugData[0])
+      : undefined,
+    bestTvProfit: ie.bestTvResDebugData
+      ? parseFloat(ie.bestTvResDebugData[3])
+      : undefined,
   };
   return ext;
 }

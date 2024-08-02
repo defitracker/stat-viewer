@@ -104,10 +104,10 @@ function transfromByKey(key: string, value: any, ie: IterationEntry) {
                     {v[0]}
                   </td>
                   <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                    {v[1]}
+                    {v[1]} c:{v[4]}
                   </td>
                   <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                    {v[2]}
+                    {v[2]} c:{v[5]}
                   </td>
                   <td className="whitespace-nowrap px-4 py-2 text-gray-700">
                     {v[3]}

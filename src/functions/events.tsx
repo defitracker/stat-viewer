@@ -99,6 +99,10 @@ function TableWrapper({ csi }: { csi: number }) {
                 sort: {
                   sortModel: [{ colId: "timestamp", sort: "desc" }],
                 },
+                columnPinning: {
+                  leftColIds: ["eventEntryId"],
+                  rightColIds: [],
+                },
               }
         }
         onStateUpdated={(e) => {
@@ -121,6 +125,14 @@ function TableWrapper({ csi }: { csi: number }) {
         // enableRangeSelection={true}
         alwaysShowHorizontalScroll={true}
         paginationAutoPageSize={true}
+        rowClass="cursor-pointer"
+        onRowClicked={(e) => {
+          if (e.data) {
+            useMyStore
+              .getState()
+              .pushToCallStack("event", [e.data.eventEntryId]);
+          }
+        }}
       />
     );
   }, [visibleKeys, availableKeysMap]);
@@ -224,12 +236,11 @@ const CUSTOM_COLDEFS: {
 } = {
   eventEntryId: {
     field: "eventEntryId",
-    pinned: true,
     cellClass: "cursor-pointer",
     onCellClicked: (e) => {
-      if (e.data) {
-        useMyStore.getState().pushToCallStack("event", [e.data.eventEntryId]);
-      }
+      // if (e.data) {
+      //   useMyStore.getState().pushToCallStack("event", [e.data.eventEntryId]);
+      // }
     },
   },
   timestamp: {

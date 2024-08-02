@@ -60,7 +60,15 @@ export type IterationEntry = {
   skippedBecauseOfSIKey: boolean;
   skippedBecauseOfNAGreenNetwork: boolean;
 
+  rtQuoteHit: number;
+  rtSwapHit: number;
+
+  resQuoteErrors: string[];
+  resSwapErrors: string[];
+
   timeForFirstGreenNetworkRes: number;
+  firstReqAResCache: boolean;
+  firstReqBResCache: boolean;
   firstReqAResNoLiq: boolean;
   firstReqBResNoLiq: boolean;
   firstReqAResPrice: string;
@@ -75,9 +83,17 @@ export type IterationEntry = {
 
   bestTvResDebugData: string[];
   timeForBestTvRes: number;
+
+  allowAutomation: boolean;
+  allowAutomation2: boolean;
+
+  earlyFinishReason: string;
+  totalTimeFromLog: number;
 };
 export type IterationEntryExt = IterationEntry & {
   timestamp: number;
+  bestTvCoeff?: number;
+  bestTvProfit?: number;
 };
 
 export type EventEntries = {
