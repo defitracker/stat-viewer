@@ -111,7 +111,7 @@ function TableWrapper({ csi }: { csi: number }) {
             ? tableState
             : {
                 columnVisibility: {
-                  hiddenColIds: ["parentId", "greenNetwork"],
+                  hiddenColIds: ["parentId", "greenNetwork", "_l_profitPlot"],
                 },
                 sort: {
                   sortModel: [{ colId: "timestamp", sort: "desc" }],
@@ -344,30 +344,47 @@ function getColDefs(keys: string[], visibleKeys: { [k: string]: boolean }) {
 
 export function ieToIeExt(ie: IterationEntry, ees: EventEntries) {
   let _l_profitRes: IterationEntryExt["_l_profitRes"] = undefined;
+  let _l_profitRes2: IterationEntryExt["_l_profitRes2"] = undefined;
   let _l_profitExtremum: IterationEntryExt["_l_profitExtremum"] = undefined;
   let _l_profitValue: IterationEntryExt["_l_profitValue"] = undefined;
-  let _l_profitPlot: IterationEntryExt["_l_profitPlot"] = undefined
+  let _l_profitPlot: IterationEntryExt["_l_profitPlot"] = undefined;
   {
     if (ie.tvResDebugData) {
       const _x = [];
+      const _x2 = [];
       const _y = [];
+      const _y2 = [];
       // _x.push([-1, -1])
       // _y.push(0)
       // _x.push([0, 0])
       // _y.push(0)
       for (const tvRes of ie.tvResDebugData) {
         _x.push([parseFloat(tvRes[0]), parseFloat(tvRes[0]) ** 2]);
+        _x2.push([parseFloat(tvRes[0]), parseFloat(tvRes[0]) ** 2]);
         if (tvRes[3] !== "unknown") {
           _y.push(parseFloat(tvRes[3]));
+          _y2.push(parseFloat(tvRes[3]));
         } else {
           _y.push(-1);
+          _y2.push(-1);
         }
+      }
+      if (ie.bestTvResDebugData) {
+        _x2.push([
+          parseFloat(ie.bestTvResDebugData[0]),
+          parseFloat(ie.bestTvResDebugData[0]) ** 2,
+        ]);
+        _y2.push(parseFloat(ie.bestTvResDebugData[3]));
       }
 
       let x = addConstant(new Matrix(_x));
+      let x2 = addConstant(new Matrix(_x2));
       let y = Matrix.columnVector(_y);
+      let y2 = Matrix.columnVector(_y2);
 
       _l_profitRes = linearRegression(y, x, false);
+      _l_profitRes2 = linearRegression(y2, x2, false);
+
       const coeffsRes = _l_profitRes.coefficients;
       const [a, b, c] = [
         coeffsRes.get(2, 0),
@@ -376,7 +393,7 @@ export function ieToIeExt(ie: IterationEntry, ees: EventEntries) {
       ];
       _l_profitExtremum = -b / (2 * a);
       _l_profitValue = c + b * _l_profitExtremum + a * _l_profitExtremum ** 2;
-      _l_profitPlot = "_l_profitPlot"
+      _l_profitPlot = "_l_profitPlot";
     }
   }
   // const profitLinearRes
@@ -390,6 +407,7 @@ export function ieToIeExt(ie: IterationEntry, ees: EventEntries) {
       ? parseFloat(ie.bestTvResDebugData[3])
       : undefined,
     _l_profitRes,
+    _l_profitRes2,
     _l_profitExtremum,
     _l_profitValue,
     _l_profitPlot,

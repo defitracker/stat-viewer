@@ -42,6 +42,16 @@ function Plot({ ieExt }: { ieExt: IterationEntryExt }) {
     coeffsRes.get(0, 0),
   ];
   const fn = `${a}x^2 + ${b}x + ${c}`;
+  
+  const coeffsRes2 = ieExt._l_profitRes2!.coefficients;
+  const [a2, b2, c2] = [
+    coeffsRes2.get(2, 0),
+    coeffsRes2.get(1, 0),
+    coeffsRes2.get(0, 0),
+  ];
+  const fn2 = `${a2}x^2 + ${b2}x + ${c2}`;
+
+  
   const extremum = -b / (2 * a);
 
   const tvAnnotations: FunctionPlotOptions["annotations"] = [];
@@ -63,6 +73,7 @@ function Plot({ ieExt }: { ieExt: IterationEntryExt }) {
   const data: FunctionPlotOptions["data"] = [];
   const annotations: FunctionPlotOptions["annotations"] = [...tvAnnotations];
   data.push({ fn });
+  data.push({ fn: fn2, color: "orange" });
   data.push({
     fnType: "points",
     graphType: "scatter",

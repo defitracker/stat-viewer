@@ -97,6 +97,7 @@ export type IterationEntryExt = IterationEntry & {
   bestTvCoeff?: number;
   bestTvProfit?: number;
   _l_profitRes?: LinearResult
+  _l_profitRes2?: LinearResult
   _l_profitExtremum?: number
   _l_profitValue?: number
   _l_profitPlot?: string
