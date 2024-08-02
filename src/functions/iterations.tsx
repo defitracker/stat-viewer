@@ -24,6 +24,10 @@ import { ColDef } from "ag-grid-community";
 import FullHeight from "@/components/FullHeight";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import Matrix from "ml-matrix";
+
+import { addConstant } from "@/helpers/linear/tools";
+import { linearRegression } from "@/helpers/linear";
 
 export function iterations(csi: number) {
   return <TableWrapper csi={csi} />;
@@ -40,8 +44,10 @@ export const ITERATIONS_KEY_ORDER_PRIORITY = [
   "estimatedBestTv",
   "bestTvCoeff",
   "bestTvProfit",
-  "totalTimeFromLog",
   "earlyFinishReason",
+  "_l_profitValue",
+  "_l_profitPlot",
+  "totalTimeFromLog",
 ];
 
 function TableWrapper({ csi }: { csi: number }) {
@@ -263,7 +269,7 @@ const CUSTOM_COLDEFS: {
   },
   timestamp: {
     field: "timestamp",
-    valueFormatter: (e) => new Date(e.data?.timestamp ?? 0).toUTCString(),
+    valueFormatter: (e) => new Date(e.data?.timestamp ?? 0).toLocaleString(),
     filter: false,
     headerName: "Time of event",
   },
@@ -337,6 +343,43 @@ function getColDefs(keys: string[], visibleKeys: { [k: string]: boolean }) {
 }
 
 export function ieToIeExt(ie: IterationEntry, ees: EventEntries) {
+  let _l_profitRes: IterationEntryExt["_l_profitRes"] = undefined;
+  let _l_profitExtremum: IterationEntryExt["_l_profitExtremum"] = undefined;
+  let _l_profitValue: IterationEntryExt["_l_profitValue"] = undefined;
+  let _l_profitPlot: IterationEntryExt["_l_profitPlot"] = undefined
+  {
+    if (ie.tvResDebugData) {
+      const _x = [];
+      const _y = [];
+      // _x.push([-1, -1])
+      // _y.push(0)
+      // _x.push([0, 0])
+      // _y.push(0)
+      for (const tvRes of ie.tvResDebugData) {
+        _x.push([parseFloat(tvRes[0]), parseFloat(tvRes[0]) ** 2]);
+        if (tvRes[3] !== "unknown") {
+          _y.push(parseFloat(tvRes[3]));
+        } else {
+          _y.push(-1);
+        }
+      }
+
+      let x = addConstant(new Matrix(_x));
+      let y = Matrix.columnVector(_y);
+
+      _l_profitRes = linearRegression(y, x, false);
+      const coeffsRes = _l_profitRes.coefficients;
+      const [a, b, c] = [
+        coeffsRes.get(2, 0),
+        coeffsRes.get(1, 0),
+        coeffsRes.get(0, 0),
+      ];
+      _l_profitExtremum = -b / (2 * a);
+      _l_profitValue = c + b * _l_profitExtremum + a * _l_profitExtremum ** 2;
+      _l_profitPlot = "_l_profitPlot"
+    }
+  }
+  // const profitLinearRes
   const ext: IterationEntryExt = {
     ...ie,
     timestamp: ees[ie.parentId].timestamp,
@@ -346,6 +389,10 @@ export function ieToIeExt(ie: IterationEntry, ees: EventEntries) {
     bestTvProfit: ie.bestTvResDebugData
       ? parseFloat(ie.bestTvResDebugData[3])
       : undefined,
+    _l_profitRes,
+    _l_profitExtremum,
+    _l_profitValue,
+    _l_profitPlot,
   };
   return ext;
 }

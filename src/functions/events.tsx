@@ -245,7 +245,7 @@ const CUSTOM_COLDEFS: {
   },
   timestamp: {
     field: "timestamp",
-    valueFormatter: (e) => new Date(e.data?.timestamp ?? 0).toUTCString(),
+    valueFormatter: (e) => new Date(e.data?.timestamp ?? 0).toLocaleString(),
     filter: false,
   },
   iterations: {

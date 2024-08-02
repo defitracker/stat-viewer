@@ -1,3 +1,5 @@
+import { LinearResult } from "./linear/linearResult";
+
 export type EventEntry = {
   eventEntryId: string;
   timestamp: number;
@@ -94,6 +96,10 @@ export type IterationEntryExt = IterationEntry & {
   timestamp: number;
   bestTvCoeff?: number;
   bestTvProfit?: number;
+  _l_profitRes?: LinearResult
+  _l_profitExtremum?: number
+  _l_profitValue?: number
+  _l_profitPlot?: string
 };
 
 export type EventEntries = {

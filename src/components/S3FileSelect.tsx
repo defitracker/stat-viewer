@@ -208,13 +208,13 @@ function S3FileSelectWrapped({
       {
         field: "timeStarted",
         flex: 1,
-        valueFormatter: (v) => new Date(v.data?.timeStarted ?? 0).toUTCString(),
+        valueFormatter: (v) => new Date(v.data?.timeStarted ?? 0).toLocaleString(),
       },
       {
         field: "timeUploaded",
         flex: 1,
         valueFormatter: (v) =>
-          new Date(v.data?.timeUploaded ?? 0).toUTCString(),
+          new Date(v.data?.timeUploaded ?? 0).toLocaleString(),
       },
       {
         field: "filesize",
