@@ -41,6 +41,7 @@ export const ITERATIONS_KEY_ORDER_PRIORITY = [
   "networkA",
   "networkB",
   "greenNetwork",
+  "block",
   "estimatedBestTv",
   "bestTvCoeff",
   "bestTvProfit",
@@ -400,10 +401,11 @@ export function ieToIeExt(ie: IterationEntry, ees: EventEntries) {
   const ext: IterationEntryExt = {
     ...ie,
     timestamp: ees[ie.parentId].timestamp,
+    block: ees[ie.parentId].block,
     bestTvCoeff: ie.bestTvResDebugData
       ? parseFloat(ie.bestTvResDebugData[0])
       : undefined,
-    bestTvProfit: ie.bestTvResDebugData
+    bestTvProfit: ie.bestTvResDebugData && ie.bestTvResDebugData[3] !== "unknown"
       ? parseFloat(ie.bestTvResDebugData[3])
       : undefined,
     _l_profitRes,
@@ -411,6 +413,8 @@ export function ieToIeExt(ie: IterationEntry, ees: EventEntries) {
     _l_profitExtremum,
     _l_profitValue,
     _l_profitPlot,
+    firstReqAResPriceDiffer: ie._delay_firstReqAResPrice ? ie.firstReqAResPrice !== ie._delay_firstReqAResPrice : undefined,
+    firstReqBResPriceDiffer: ie._delay_firstReqBResPrice ? ie.firstReqBResPrice !== ie._delay_firstReqBResPrice : undefined,
   };
   return ext;
 }

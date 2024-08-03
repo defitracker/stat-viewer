@@ -68,7 +68,16 @@ export type IterationEntry = {
   resQuoteErrors: string[];
   resSwapErrors: string[];
 
+  _waitTimeBeforeIteration: number;
+
   timeForFirstGreenNetworkRes: number;
+
+  _delay_time: number;
+  _delay_timeForFirstGreenNetworkRes: number;
+  _delay_firstReqAResPrice: string;
+  _delay_firstReqBResPrice: string;
+  _delay_greenNetwork: string;
+
   firstReqAResCache: boolean;
   firstReqBResCache: boolean;
   firstReqAResNoLiq: boolean;
@@ -94,13 +103,16 @@ export type IterationEntry = {
 };
 export type IterationEntryExt = IterationEntry & {
   timestamp: number;
+  block?: string
   bestTvCoeff?: number;
   bestTvProfit?: number;
-  _l_profitRes?: LinearResult
-  _l_profitRes2?: LinearResult
-  _l_profitExtremum?: number
-  _l_profitValue?: number
-  _l_profitPlot?: string
+  _l_profitRes?: LinearResult;
+  _l_profitRes2?: LinearResult;
+  _l_profitExtremum?: number;
+  _l_profitValue?: number;
+  _l_profitPlot?: string;
+  firstReqAResPriceDiffer?: boolean;
+  firstReqBResPriceDiffer?: boolean;
 };
 
 export type EventEntries = {
