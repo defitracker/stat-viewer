@@ -76,15 +76,11 @@ function TableWrapper({ csi }: { csi: number }) {
     // _visibleKeys["network"] = true;
     // _visibleKeys["eventName"] = true;
     // _visibleKeys["eventVolumeUsd"] = true;
-    const _visibleKeys = Object.fromEntries(
-      availableKeysMap.map((key) => [key, true])
-    );
+    const _visibleKeys = Object.fromEntries(availableKeysMap.map((key) => [key, true]));
     return _visibleKeys;
   };
 
-  const [visibleKeys, setVisibleKeys] = useState<{ [k: string]: boolean }>(
-    getDefaultVisibleKeys()
-  );
+  const [visibleKeys, setVisibleKeys] = useState<{ [k: string]: boolean }>(getDefaultVisibleKeys());
 
   const memoTable = useMemo(() => {
     const colDefs = getColDefs(availableKeysMap, visibleKeys);
@@ -128,9 +124,7 @@ function TableWrapper({ csi }: { csi: number }) {
         rowClass="cursor-pointer"
         onRowClicked={(e) => {
           if (e.data) {
-            useMyStore
-              .getState()
-              .pushToCallStack("event", [e.data.eventEntryId]);
+            useMyStore.getState().pushToCallStack("event", [e.data.eventEntryId]);
           }
         }}
       />
@@ -151,9 +145,7 @@ function TableWrapper({ csi }: { csi: number }) {
           <ChevronLeft className="h-4 w-4" />
           <span className="sr-only">Back</span>
         </Button>
-        <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
-          Events
-        </h1>
+        <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">Events</h1>
         <div className="items-center flex gap-2 md:ml-auto">
           <Button
             disabled
@@ -177,11 +169,7 @@ function TableWrapper({ csi }: { csi: number }) {
               <DropdownMenuItem
                 className="cursor-pointer"
                 onClick={() => {
-                  setVisibleKeys(
-                    Object.fromEntries(
-                      Object.entries(visibleKeys).map((k) => [k[0], true])
-                    )
-                  );
+                  setVisibleKeys(Object.fromEntries(Object.entries(visibleKeys).map((k) => [k[0], true])));
                 }}
               >
                 Enable all
@@ -189,9 +177,7 @@ function TableWrapper({ csi }: { csi: number }) {
               <DropdownMenuItem
                 className="cursor-pointer"
                 onClick={() => {
-                  const newKeys = Object.fromEntries(
-                    Object.entries(visibleKeys).map((k) => [k[0], false])
-                  );
+                  const newKeys = Object.fromEntries(Object.entries(visibleKeys).map((k) => [k[0], false]));
                   newKeys["eventEntryId"] = true;
                   setVisibleKeys(newKeys);
                 }}
@@ -264,14 +250,14 @@ const CUSTOM_COLDEFS: {
   },
   block: {
     field: "block",
+    valueGetter: (v) => (v.data?.block ? parseInt(v.data.block) : undefined),
     filter: "agNumberColumnFilter",
   },
   eventVolumeUsd: {
     field: "eventVolumeUsd",
     filter: "agNumberColumnFilter",
     valueGetter: (e) => parseFloat(e.data?.eventVolumeUsd ?? "0"),
-    valueFormatter: (e) =>
-      USDollarFormat.format(parseFloat(e.data?.eventVolumeUsd ?? "0")),
+    valueFormatter: (e) => USDollarFormat.format(parseFloat(e.data?.eventVolumeUsd ?? "0")),
   },
   address: {
     field: "address",

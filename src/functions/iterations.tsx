@@ -10,12 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  EventEntries,
-  EventEntry,
-  IterationEntry,
-  IterationEntryExt,
-} from "@/helpers/types";
+import { EventEntries, EventEntry, IterationEntry, IterationEntryExt } from "@/helpers/types";
 
 import { AgGridReact } from "ag-grid-react";
 
@@ -47,6 +42,7 @@ export const ITERATIONS_KEY_ORDER_PRIORITY = [
   "bestTvProfit",
   "earlyFinishReason",
   "_l_profitValue",
+  "_l_profitToActual",
   "_l_profitPlot",
   "totalTimeFromLog",
 ];
@@ -91,15 +87,11 @@ function TableWrapper({ csi }: { csi: number }) {
     // _visibleKeys["network"] = true;
     // _visibleKeys["eventName"] = true;
     // _visibleKeys["eventVolumeUsd"] = true;
-    const _visibleKeys = Object.fromEntries(
-      availableKeysMap.map((key) => [key, true])
-    );
+    const _visibleKeys = Object.fromEntries(availableKeysMap.map((key) => [key, true]));
     return _visibleKeys;
   };
 
-  const [visibleKeys, setVisibleKeys] = useState<{ [k: string]: boolean }>(
-    getDefaultVisibleKeys()
-  );
+  const [visibleKeys, setVisibleKeys] = useState<{ [k: string]: boolean }>(getDefaultVisibleKeys());
 
   const memoTable = useMemo(() => {
     const colDefs = getColDefs(availableKeysMap, visibleKeys);
@@ -146,9 +138,7 @@ function TableWrapper({ csi }: { csi: number }) {
         rowClass="cursor-pointer"
         onRowClicked={(e) => {
           if (e.data) {
-            useMyStore
-              .getState()
-              .pushToCallStack("iteration", [e.data.iterationEntryId]);
+            useMyStore.getState().pushToCallStack("iteration", [e.data.iterationEntryId]);
           }
         }}
       />
@@ -169,9 +159,7 @@ function TableWrapper({ csi }: { csi: number }) {
           <ChevronLeft className="h-4 w-4" />
           <span className="sr-only">Back</span>
         </Button>
-        <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
-          Iterations
-        </h1>
+        <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">Iterations</h1>
         <div className="items-center flex gap-2 md:ml-auto">
           <Button
             disabled
@@ -195,11 +183,7 @@ function TableWrapper({ csi }: { csi: number }) {
               <DropdownMenuItem
                 className="cursor-pointer"
                 onClick={() => {
-                  setVisibleKeys(
-                    Object.fromEntries(
-                      Object.entries(visibleKeys).map((k) => [k[0], true])
-                    )
-                  );
+                  setVisibleKeys(Object.fromEntries(Object.entries(visibleKeys).map((k) => [k[0], true])));
                 }}
               >
                 Enable all
@@ -207,9 +191,7 @@ function TableWrapper({ csi }: { csi: number }) {
               <DropdownMenuItem
                 className="cursor-pointer"
                 onClick={() => {
-                  const newKeys = Object.fromEntries(
-                    Object.entries(visibleKeys).map((k) => [k[0], false])
-                  );
+                  const newKeys = Object.fromEntries(Object.entries(visibleKeys).map((k) => [k[0], false]));
                   newKeys["eventEntryId"] = true;
                   setVisibleKeys(newKeys);
                 }}
@@ -302,6 +284,17 @@ const CUSTOM_COLDEFS: {
     field: "totalTimeFromLog",
     filter: "agNumberColumnFilter",
   },
+  block: {
+    field: "block",
+    filter: "agNumberColumnFilter",
+  },
+  _l_profitToActual: {
+    field: "_l_profitToActual",
+    filter: "agNumberColumnFilter",
+    cellClass: (v) => ((v.data?._l_profitToActual ?? 0) > 1 ? "text-red-500" : ""),
+    valueFormatter: (v) =>
+      v.data?._l_profitToActual ? `$${parseFloat((v.data?._l_profitToActual ?? 0).toFixed(2))}` : "",
+  },
   networkA: {
     field: "networkA",
     cellRenderer: (params: any) => {
@@ -371,10 +364,7 @@ export function ieToIeExt(ie: IterationEntry, ees: EventEntries) {
         }
       }
       if (ie.bestTvResDebugData) {
-        _x2.push([
-          parseFloat(ie.bestTvResDebugData[0]),
-          parseFloat(ie.bestTvResDebugData[0]) ** 2,
-        ]);
+        _x2.push([parseFloat(ie.bestTvResDebugData[0]), parseFloat(ie.bestTvResDebugData[0]) ** 2]);
         _y2.push(parseFloat(ie.bestTvResDebugData[3]));
       }
 
@@ -387,34 +377,33 @@ export function ieToIeExt(ie: IterationEntry, ees: EventEntries) {
       _l_profitRes2 = linearRegression(y2, x2, false);
 
       const coeffsRes = _l_profitRes.coefficients;
-      const [a, b, c] = [
-        coeffsRes.get(2, 0),
-        coeffsRes.get(1, 0),
-        coeffsRes.get(0, 0),
-      ];
+      const [a, b, c] = [coeffsRes.get(2, 0), coeffsRes.get(1, 0), coeffsRes.get(0, 0)];
       _l_profitExtremum = -b / (2 * a);
       _l_profitValue = c + b * _l_profitExtremum + a * _l_profitExtremum ** 2;
       _l_profitPlot = "_l_profitPlot";
     }
   }
-  // const profitLinearRes
+  const bestTvProfit =
+    ie.bestTvResDebugData && ie.bestTvResDebugData[3] !== "unknown" ? parseFloat(ie.bestTvResDebugData[3]) : undefined;
   const ext: IterationEntryExt = {
     ...ie,
-    timestamp: ees[ie.parentId].timestamp,
-    block: ees[ie.parentId].block,
-    bestTvCoeff: ie.bestTvResDebugData
-      ? parseFloat(ie.bestTvResDebugData[0])
-      : undefined,
-    bestTvProfit: ie.bestTvResDebugData && ie.bestTvResDebugData[3] !== "unknown"
-      ? parseFloat(ie.bestTvResDebugData[3])
-      : undefined,
+    timestamp: ees[ie.parentId]?.timestamp,
+    block: ees[ie.parentId]?.block ? parseInt(ees[ie.parentId]?.block) : undefined,
+    bestTvCoeff: ie.bestTvResDebugData ? parseFloat(ie.bestTvResDebugData[0]) : undefined,
+    bestTvProfit,
     _l_profitRes,
     _l_profitRes2,
     _l_profitExtremum,
     _l_profitValue,
     _l_profitPlot,
-    firstReqAResPriceDiffer: ie._delay_firstReqAResPrice ? ie.firstReqAResPrice !== ie._delay_firstReqAResPrice : undefined,
-    firstReqBResPriceDiffer: ie._delay_firstReqBResPrice ? ie.firstReqBResPrice !== ie._delay_firstReqBResPrice : undefined,
+    // _l_profitToActual: bestTvProfit && _l_profitValue ? bestTvProfit / _l_profitValue : undefined,
+    _l_profitToActual: bestTvProfit && _l_profitValue ? Math.abs(bestTvProfit - _l_profitValue) * 2500 : undefined,
+    firstReqAResPriceDiffer: ie._delay_firstReqAResPrice
+      ? ie.firstReqAResPrice !== ie._delay_firstReqAResPrice
+      : undefined,
+    firstReqBResPriceDiffer: ie._delay_firstReqBResPrice
+      ? ie.firstReqBResPrice !== ie._delay_firstReqBResPrice
+      : undefined,
   };
   return ext;
 }

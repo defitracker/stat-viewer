@@ -103,7 +103,7 @@ export type IterationEntry = {
 };
 export type IterationEntryExt = IterationEntry & {
   timestamp: number;
-  block?: string
+  block?: number
   bestTvCoeff?: number;
   bestTvProfit?: number;
   _l_profitRes?: LinearResult;
@@ -111,6 +111,7 @@ export type IterationEntryExt = IterationEntry & {
   _l_profitExtremum?: number;
   _l_profitValue?: number;
   _l_profitPlot?: string;
+  _l_profitToActual?: number
   firstReqAResPriceDiffer?: boolean;
   firstReqBResPriceDiffer?: boolean;
 };
