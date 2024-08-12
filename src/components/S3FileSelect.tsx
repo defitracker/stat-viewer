@@ -1,23 +1,8 @@
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 
-import { ColDef, StateUpdatedEvent } from "ag-grid-community";
+import { CellClickedEvent, ColDef, StateUpdatedEvent } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-quartz.css";
@@ -39,13 +24,17 @@ import FullHeight from "./FullHeight";
 const formSchema = z.object({
   region: z.string().min(1, { message: "region is required" }),
   bucketName: z.string().min(1, { message: "bucketName is required" }),
-  accessKeyId: z
-    .string()
-    .length(20, { message: "AccessKeyId must be 20 characters." }),
-  secretAccessKey: z
-    .string()
-    .length(40, { message: "SecretAccessKey must be 40 characters." }),
+  accessKeyId: z.string().length(20, { message: "AccessKeyId must be 20 characters." }),
+  secretAccessKey: z.string().length(40, { message: "SecretAccessKey must be 40 characters." }),
 });
+
+function getFileSizeString(size: number | undefined) {
+  if (size === undefined) return "unknown size";
+  if (size >= 1024 ** 3) return `${(size / 1024 ** 3).toFixed(1)} GB`;
+  if (size >= 1024 ** 2) return `${(size / 1024 ** 2).toFixed(1)} MB`;
+  if (size >= 1024) return `${(size / 1024).toFixed(1)} KB`;
+  return `${size} B`;
+}
 
 function S3FileSelectWrapped({
   loading,
@@ -182,45 +171,92 @@ function S3FileSelectWrapped({
       filesize: number;
       timeStarted: number;
       timeUploaded: number;
+      remove: 0;
     };
 
-    function getFileSizeString(size: number | undefined) {
-      if (size === undefined) return "unknown size";
-      if (size >= 1000 * 1000) return `${(size / 1000 / 1000).toFixed(1)} MB`;
-      if (size >= 1000) return `${(size / 1000).toFixed(1)} KB`;
-      return `${size} B`;
-    }
+    const onCellClick = async (e: CellClickedEvent<FileData>) => {
+      if (!e.data) return console.error("No e.data", e);
+
+      const manager = S3Connect.getManager();
+      if (!manager) return console.error("No s3 manager");
+
+      setLoading(true);
+      useMyStore.getState().setFileName(e.data.filename);
+
+      const arrayBuffer = await manager.getObject(e.data.filename);
+      if (arrayBuffer !== undefined) {
+        const enc = new TextDecoder("utf-8");
+        const fileString = enc.decode(arrayBuffer as Uint8Array);
+        const json = JSON.parse(fileString);
+        useMyStore.getState().setFileData(json);
+        useMyStore.getState().popFromCallStack(useMyStore.getState().callStack.length);
+      }
+      setLoading(false);
+    };
 
     const rowData: FileData[] = files.map((f) => {
-      let timeStarted = parseInt(
-        f.Key?.replace(".json", "").split("-")?.pop() ?? "0"
-      );
+      let timeStarted = parseInt(f.Key?.replace(".json", "").split("-")?.pop() ?? "0");
       if (isNaN(timeStarted)) timeStarted = 0;
       return {
         filename: f.Key || "{unknown}",
         filesize: f.Size || 0,
         timeStarted: timeStarted,
         timeUploaded: f.LastModified?.getTime() ?? 0,
+        remove: 0,
       };
     });
     const colDefs: ColDef<FileData>[] = [
-      { field: "filename", filter: true, sortable: false, flex: 1 },
+      { field: "filename", filter: true, sortable: false, flex: 1, onCellClicked: onCellClick },
       {
         field: "timeStarted",
         flex: 1,
         valueFormatter: (v) => new Date(v.data?.timeStarted ?? 0).toLocaleString(),
+        onCellClicked: onCellClick,
       },
       {
         field: "timeUploaded",
         flex: 1,
-        valueFormatter: (v) =>
-          new Date(v.data?.timeUploaded ?? 0).toLocaleString(),
+        valueFormatter: (v) => new Date(v.data?.timeUploaded ?? 0).toLocaleString(),
+        onCellClicked: onCellClick,
       },
       {
         field: "filesize",
         flex: 1,
         width: 150,
         valueFormatter: (v) => getFileSizeString(v.data?.filesize),
+        onCellClicked: onCellClick,
+      },
+      {
+        field: "remove",
+        headerName: "Delete",
+        width: 100,
+        suppressHeaderMenuButton: true,
+        suppressHeaderFilterButton: true,
+        sortable: false,
+        onCellClicked: () => {},
+        cellRenderer: (params: any) => (
+          <Button
+            size={"sm"}
+            variant={"outline"}
+            onClick={async (e) => {
+              if (!e.metaKey) return;
+              const filename = params.data.filename;
+
+              const manager = S3Connect.getManager();
+              if (!manager) return console.error("No s3 manager");
+
+              setLoading(true);
+
+              await manager.deleteObject(filename);
+
+              setFiles(files.filter((f) => f.Key !== filename));
+
+              setLoading(false);
+            }}
+          >
+            Delete
+          </Button>
+        ),
       },
     ];
 
@@ -252,32 +288,13 @@ function S3FileSelectWrapped({
             // suppressPaginationPanel={true}
             alwaysShowHorizontalScroll={true}
             multiSortKey={"ctrl"}
-            onRowClicked={async (e) => {
-              if (!e.data) return console.error("No e.data", e);
-
-              const manager = S3Connect.getManager();
-              if (!manager) return console.error("No s3 manager");
-
-              setLoading(true);
-              useMyStore.getState().setFileName(e.data.filename);
-
-              const arrayBuffer = await manager.getObject(e.data.filename);
-              if (arrayBuffer !== undefined) {
-                const enc = new TextDecoder("utf-8");
-                const fileString = enc.decode(arrayBuffer as Uint8Array);
-                const json = JSON.parse(fileString);
-                useMyStore.getState().setFileData(json);
-                useMyStore
-                  .getState()
-                  .popFromCallStack(useMyStore.getState().callStack.length);
-              }
-              setLoading(false);
-            }}
           />
         </FullHeight>
       </CardContent>
     );
   };
+
+  const totalSize = files?.map((f) => f.Size ?? 0).reduce((acc, cur) => acc + cur, 0);
 
   return (
     <div className="w-full">
@@ -289,11 +306,9 @@ function S3FileSelectWrapped({
       >
         <CardHeader>
           <CardTitle className="text-xl">
-            {files === null ? "Connect to S3" : "Select file from S3"}
+            {files === null ? "Connect to S3" : `Select file from S3 (${getFileSizeString(totalSize)})`}
           </CardTitle>
-          {files === null && (
-            <CardDescription>Enter your AWS credentials below</CardDescription>
-          )}
+          {files === null && <CardDescription>Enter your AWS credentials below</CardDescription>}
         </CardHeader>
         {renderForm()}
         {renderFiles()}
@@ -309,11 +324,7 @@ export default function S3FileSelect() {
   const permaStoreData = useMyStore.getState().permaStore["s3FileSelect"];
   console.log("permaStoreData", permaStoreData);
 
-  const applyPermaStoreValues =
-    permaStoreData &&
-    permaStoreData.inputValues &&
-    loading === false &&
-    files === null;
+  const applyPermaStoreValues = permaStoreData && permaStoreData.inputValues && loading === false && files === null;
 
   return (
     <S3FileSelectWrapped

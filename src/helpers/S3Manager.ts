@@ -1,4 +1,4 @@
-import S3, { GetObjectRequest, ListObjectsRequest } from "aws-sdk/clients/s3";
+import S3, { DeleteObjectRequest, GetObjectRequest, ListObjectsRequest } from "aws-sdk/clients/s3";
 
 type CS3Manager = {
   bucketName: string;
@@ -62,6 +62,15 @@ export class S3Manager {
       console.error("[S3Manager] error getObject", e);
       return undefined;
     }
+  }
+
+  public async deleteObject(key: string) {
+    const deleteParams: DeleteObjectRequest = {
+      Bucket: this.bucketName,
+      Key: key,
+    };
+
+    await this.s3.deleteObject(deleteParams).promise();
   }
 
   public async listObjects() {
