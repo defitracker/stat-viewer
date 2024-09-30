@@ -248,11 +248,11 @@ const CUSTOM_COLDEFS: {
   },
   parentId: {
     field: "parentId",
-    hide: true,
+    hide: false,
   },
   timestamp: {
     field: "timestamp",
-    valueFormatter: (e) => new Date(e.data?.timestamp ?? 0).toLocaleString(),
+    valueFormatter: (e) => new Date(e.data?.timestamp ?? 0).toUTCString(),
     filter: false,
     headerName: "Time of event",
   },
@@ -294,6 +294,10 @@ const CUSTOM_COLDEFS: {
     cellClass: (v) => ((v.data?._l_profitToActual ?? 0) > 1 ? "text-red-500" : ""),
     valueFormatter: (v) =>
       v.data?._l_profitToActual ? `$${parseFloat((v.data?._l_profitToActual ?? 0).toFixed(2))}` : "",
+  },
+  _l_profitValue: {
+    field: "_l_profitValue",
+    filter: "agNumberColumnFilter",
   },
   networkA: {
     field: "networkA",

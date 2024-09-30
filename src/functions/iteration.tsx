@@ -36,22 +36,13 @@ function Plot({ ieExt }: { ieExt: IterationEntryExt }) {
   if (!ieExt._l_profitRes) return <></>;
 
   const coeffsRes = ieExt._l_profitRes.coefficients;
-  const [a, b, c] = [
-    coeffsRes.get(2, 0),
-    coeffsRes.get(1, 0),
-    coeffsRes.get(0, 0),
-  ];
+  const [a, b, c] = [coeffsRes.get(2, 0), coeffsRes.get(1, 0), coeffsRes.get(0, 0)];
   const fn = `${a}x^2 + ${b}x + ${c}`;
-  
+
   const coeffsRes2 = ieExt._l_profitRes2!.coefficients;
-  const [a2, b2, c2] = [
-    coeffsRes2.get(2, 0),
-    coeffsRes2.get(1, 0),
-    coeffsRes2.get(0, 0),
-  ];
+  const [a2, b2, c2] = [coeffsRes2.get(2, 0), coeffsRes2.get(1, 0), coeffsRes2.get(0, 0)];
   const fn2 = `${a2}x^2 + ${b2}x + ${c2}`;
 
-  
   const extremum = -b / (2 * a);
 
   const tvAnnotations: FunctionPlotOptions["annotations"] = [];
@@ -154,9 +145,7 @@ export function iteration(csi: number, ieId: string) {
           <ChevronLeft className="h-4 w-4" />
           <span className="sr-only">Back</span>
         </Button>
-        <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
-          Iteration
-        </h1>
+        <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">Iteration</h1>
         <Badge variant="outline" className="ml-auto sm:ml-0">
           {ieId}
         </Badge>
@@ -165,7 +154,7 @@ export function iteration(csi: number, ieId: string) {
         <CardContent className="py-4">
           <Table>
             <TableBody>
-              {keysSorted.map((key) => {
+              {keysSorted.filter(key => !["greenNetwork"].includes(key)).map((key) => {
                 const value = ieExt[key as keyof typeof ieExt];
                 return (
                   <TableRow key={key}>
@@ -183,6 +172,13 @@ export function iteration(csi: number, ieId: string) {
 }
 
 function transfromByKey(key: string, value: any, ieExt: IterationEntryExt) {
+  if (key === "timestamp") {
+    return (
+      <span>
+        {new Date(value).toUTCString()} ({value})
+      </span>
+    );
+  }
   if (key === "parentId") {
     return (
       <span
@@ -195,14 +191,40 @@ function transfromByKey(key: string, value: any, ieExt: IterationEntryExt) {
       </span>
     );
   }
+  if (key === "networkA") {
+    if (!value) return <></>;
+    const isGreen = ieExt.greenNetwork === value;
+    return (
+      <Badge className={isGreen ? "bg-green-200/40" : ""} variant="outline">
+        {value}
+      </Badge>
+    );
+  }
+  if (key === "networkB") {
+    if (!value) return <></>;
+    const isGreen = ieExt.greenNetwork === value;
+    return (
+      <Badge className={isGreen ? "bg-green-200/40" : ""} variant="outline">
+        {value}
+      </Badge>
+    );
+  }
   if (key === "_l_profitPlot") {
     return <Plot ieExt={ieExt} />;
   }
   if (key === "_l_profitValue") {
-    return <Badge variant="outline" style={{ borderColor: "purple", color: "purple" }}>{value}</Badge>
+    return (
+      <Badge variant="outline" style={{ borderColor: "purple", color: "purple" }}>
+        {value}
+      </Badge>
+    );
   }
   if (key === "bestTvProfit") {
-    return <Badge variant="outline" style={{ borderColor: "green", color: "green" }}>{value}</Badge>
+    return (
+      <Badge variant="outline" style={{ borderColor: "green", color: "green" }}>
+        {value}
+      </Badge>
+    );
   }
   if (key === "tvResDebugData") {
     return (
@@ -210,18 +232,10 @@ function transfromByKey(key: string, value: any, ieExt: IterationEntryExt) {
         <table className="min-w-full divide-y-2 divide-gray-200 bg-white text-sm">
           <thead className="ltr:text-left rtl:text-right">
             <tr>
-              <th className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
-                TV
-              </th>
-              <th className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
-                Buy Res
-              </th>
-              <th className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
-                Sell Res
-              </th>
-              <th className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
-                Profit
-              </th>
+              <th className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">TV</th>
+              <th className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">Buy Res</th>
+              <th className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">Sell Res</th>
+              <th className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">Profit</th>
             </tr>
           </thead>
 
@@ -229,18 +243,14 @@ function transfromByKey(key: string, value: any, ieExt: IterationEntryExt) {
             {(value as string[][]).map((v) => {
               return (
                 <tr key={v[0]}>
-                  <td className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
-                    {v[0]}
-                  </td>
+                  <td className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">{v[0]}</td>
                   <td className="whitespace-nowrap px-4 py-2 text-gray-700">
                     {v[1]} c:{v[4]}
                   </td>
                   <td className="whitespace-nowrap px-4 py-2 text-gray-700">
                     {v[2]} c:{v[5]}
                   </td>
-                  <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                    {v[3]}
-                  </td>
+                  <td className="whitespace-nowrap px-4 py-2 text-gray-700">{v[3]}</td>
                 </tr>
               );
             })}

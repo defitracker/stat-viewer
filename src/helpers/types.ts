@@ -55,18 +55,27 @@ export type EventEntry = {
 export type IterationEntry = {
   iterationEntryId: string;
   parentId: string;
+  eventTxHash: string;
   networkA: string;
   networkB: string;
+  predictedGreenNetwork: string;
+  usePredictedGreenNetwork: boolean;
   tokenName: string;
+  req_key: string;
 
   skippedBecauseOfSIKey: boolean;
   skippedBecauseOfNAGreenNetwork: boolean;
+
+  greenNetworkPriceMultiplier: number;
+  redNetworkPriceMultiplier: number;
 
   rtQuoteHit: number;
   rtSwapHit: number;
 
   resQuoteErrors: string[];
   resSwapErrors: string[];
+  resABlocks: string[];
+  resBBlocks: string[];
 
   _waitTimeBeforeIteration: number;
 
@@ -86,6 +95,10 @@ export type IterationEntry = {
   firstReqBResPrice: string;
   greenNetwork: string;
 
+  skipBecauseOfPoop: boolean;
+  req_timings: Record<string, any>;
+  req_retries: Record<string, any>;
+
   timeForOtherTVs: number;
   tvResDebugData: string[][];
 
@@ -103,7 +116,7 @@ export type IterationEntry = {
 };
 export type IterationEntryExt = IterationEntry & {
   timestamp: number;
-  block?: number
+  block?: number;
   bestTvCoeff?: number;
   bestTvProfit?: number;
   _l_profitRes?: LinearResult;
@@ -111,7 +124,7 @@ export type IterationEntryExt = IterationEntry & {
   _l_profitExtremum?: number;
   _l_profitValue?: number;
   _l_profitPlot?: string;
-  _l_profitToActual?: number
+  _l_profitToActual?: number;
   firstReqAResPriceDiffer?: boolean;
   firstReqBResPriceDiffer?: boolean;
 };
