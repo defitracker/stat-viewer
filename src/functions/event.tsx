@@ -70,14 +70,14 @@ function transfromByKey(key: string, value: any, ee: EventEntry, iterations: Ite
   if (key === "timestamp") {
     return (
       <span>
-        {new Date(value).toUTCString()} ({value})
+        {new Date(value).toUTCString()} <span className="bg-blue-100">{new Date(value).getMilliseconds()}ms</span> ({value})
       </span>
     );
   }
   if (key === "_time_received") {
     return (
       <span>
-        {new Date(value).toUTCString()} ({value})
+        {new Date(value).toUTCString()} <span className="bg-blue-100">{new Date(value).getMilliseconds()}ms</span> ({value})
       </span>
     );
   }

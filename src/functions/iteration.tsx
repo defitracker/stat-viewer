@@ -175,7 +175,7 @@ function transfromByKey(key: string, value: any, ieExt: IterationEntryExt) {
   if (key === "timestamp") {
     return (
       <span>
-        {new Date(value).toUTCString()} ({value})
+        {new Date(value).toUTCString()} <span className="bg-blue-100">{new Date(value).getMilliseconds()}ms</span> ({value})
       </span>
     );
   }
